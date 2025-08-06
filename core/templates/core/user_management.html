@@ -104,7 +104,7 @@
                                                 </div>
                                                 <div class="btn-group">
                                                     <button class="btn btn-outline-primary btn-sm"
-                                                            onclick="showEditUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.role }}', '{% if user.group %}{{ user.group.id }}{% endif %}', '{% if user.birth_date %}{{ user.birth_date|date:'Y-m-d' }}{% endif %}', '{{ user.parent_full_name|default:'' }}', '{{ user.parent_phone|default:'' }}')"
+                                                            onclick="showEditUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.role }}', '{% if user.group %}{{ user.group.id }}{% endif %}', '{% if user.birth_date %}{{ user.birth_date|date:'Y-m-d' }}{% endif %}', '{{ user.parent_full_name|default:'' }}', '{{ user.parent_phone|default:'' }}', '{{ user.profile.astrocoins }}')"
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#editUserModal">
                                                         <i class="fas fa-edit me-1"></i>Редактировать
@@ -392,6 +392,21 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="editBalance" class="form-label">Баланс Астрокоинов</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-coins"></i>
+                                    </span>
+                                    <input type="number" class="form-control" id="editBalance" name="balance" min="0" step="1">
+                                    <span class="input-group-text">AC</span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Администратор может изменить баланс пользователя
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -634,7 +649,7 @@ function showDeleteGroup(groupId, groupName) {
     document.getElementById('deleteGroupName').textContent = groupName;
 }
 
-function showEditUser(userId, username, email, role, groupId, birthDate, parentFullName, parentPhone) {
+function showEditUser(userId, username, email, role, groupId, birthDate, parentFullName, parentPhone, balance) {
     document.getElementById('editUserId').value = userId;
     document.getElementById('editUsername').value = username;
     document.getElementById('editEmail').value = email;
@@ -642,6 +657,7 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
     
     const editStudentFields = document.getElementById('editStudentFields');
     const editGroup = document.getElementById('editGroup');
+    const editBalance = document.getElementById('editBalance');
     
     function toggleEditStudentFields(isStudent) {
         editStudentFields.style.display = isStudent ? 'block' : 'none';
@@ -650,6 +666,7 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
             document.getElementById('editParentFullName').value = '';
             document.getElementById('editParentPhone').value = '';
             editGroup.value = '';
+            editBalance.value = '';
         }
     }
     
@@ -659,6 +676,7 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
         document.getElementById('editParentFullName').value = parentFullName || '';
         document.getElementById('editParentPhone').value = parentPhone || '';
         editGroup.value = groupId || '';
+        editBalance.value = balance || '0';
     }
     
     toggleEditStudentFields(role === 'student');

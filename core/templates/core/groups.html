@@ -108,12 +108,49 @@
                     <div class="modal-body">
                         <p>Начисление AstroCoins ученику: <span id="awardStudentName" class="fw-bold"></span></p>
                         <div class="mb-3">
-                            <label for="awardAmount" class="form-label">Количество AstroCoins</label>
-                            <input type="number" class="form-control" id="awardAmount" name="amount" min="1" step="1" required>
+                            <label for="awardTemplate" class="form-label">Шаблон начисления</label>
+                            <select class="form-select" id="awardTemplate" onchange="updateAwardForm()">
+                                <option value="">Выберите причину начисления...</option>
+                                {% for reason in award_reasons %}
+                                    <option value="{{ reason.id }}" 
+                                            data-amount="{{ reason.coins }}" 
+                                            data-name="{{ reason.name }}"
+                                            data-cooldown="{{ reason.cooldown_days }}"
+                                            data-special="{{ reason.is_special|yesno:'true,false' }}">
+                                        {{ reason.name }} - {{ reason.coins }} AC
+                                        {% if reason.cooldown_days > 0 %}(раз в {{ reason.cooldown_days }} дн.){% endif %}
+                                        {% if reason.is_special %}⭐{% endif %}
+                                    </option>
+                                {% endfor %}
+                                <option value="custom">Своя причина...</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-star text-warning me-1"></i>Особые награды отмечены звездочкой
+                            </div>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3" id="customAmountDiv" style="display: none;">
+                            <label for="awardAmount" class="form-label">Количество AstroCoins</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-coins"></i>
+                                </span>
+                                <input type="number" class="form-control" id="awardAmount" name="amount" min="1" step="1">
+                                <span class="input-group-text">AC</span>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="customReasonDiv" style="display: none;">
                             <label for="awardReason" class="form-label">Причина начисления</label>
-                            <textarea class="form-control" id="awardReason" name="reason" rows="2" required></textarea>
+                            <textarea class="form-control" id="awardReason" name="reason" rows="2" placeholder="Опишите за что начисляются AstroCoins..."></textarea>
+                        </div>
+                        <div class="mb-3" id="selectedTemplateInfo" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Выбрано:</strong> <span id="selectedTemplateName"></span><br>
+                                <strong>Сумма:</strong> <span id="selectedTemplateAmount"></span> AC
+                                <div id="selectedTemplateCooldown" style="display: none;">
+                                    <strong>Ограничение:</strong> <span class="text-warning">Можно начислить раз в <span id="cooldownDays"></span> дней</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -168,8 +205,81 @@
 function showAwardModal(studentId, studentName) {
     document.getElementById('awardStudentId').value = studentId;
     document.getElementById('awardStudentName').textContent = studentName;
+    
+    // Сбрасываем форму
+    document.getElementById('awardTemplate').value = '';
     document.getElementById('awardAmount').value = '';
     document.getElementById('awardReason').value = '';
+    
+    // Скрываем все дополнительные поля
+    document.getElementById('customAmountDiv').style.display = 'none';
+    document.getElementById('customReasonDiv').style.display = 'none';
+    document.getElementById('selectedTemplateInfo').style.display = 'none';
+}
+
+function updateAwardForm() {
+    const templateSelect = document.getElementById('awardTemplate');
+    const selectedOption = templateSelect.options[templateSelect.selectedIndex];
+    const customAmountDiv = document.getElementById('customAmountDiv');
+    const customReasonDiv = document.getElementById('customReasonDiv');
+    const selectedTemplateInfo = document.getElementById('selectedTemplateInfo');
+    const amountInput = document.getElementById('awardAmount');
+    const reasonInput = document.getElementById('awardReason');
+    
+    if (templateSelect.value === 'custom') {
+        // Показываем поля для ввода своей причины
+        customAmountDiv.style.display = 'block';
+        customReasonDiv.style.display = 'block';
+        selectedTemplateInfo.style.display = 'none';
+        
+        // Делаем поля обязательными
+        amountInput.required = true;
+        reasonInput.required = true;
+        
+        // Очищаем скрытые поля
+        amountInput.name = 'amount';
+        reasonInput.name = 'reason';
+        
+    } else if (templateSelect.value !== '') {
+        // Выбран шаблон
+        const amount = selectedOption.getAttribute('data-amount');
+        const name = selectedOption.getAttribute('data-name');
+        const cooldown = selectedOption.getAttribute('data-cooldown');
+        
+        // Показываем информацию о выбранном шаблоне
+        selectedTemplateInfo.style.display = 'block';
+        document.getElementById('selectedTemplateName').textContent = name;
+        document.getElementById('selectedTemplateAmount').textContent = amount;
+        
+        // Показываем информацию об ограничении, если есть
+        if (cooldown > 0) {
+            document.getElementById('selectedTemplateCooldown').style.display = 'block';
+            document.getElementById('cooldownDays').textContent = cooldown;
+        } else {
+            document.getElementById('selectedTemplateCooldown').style.display = 'none';
+        }
+        
+        // Скрываем поля для ввода
+        customAmountDiv.style.display = 'none';
+        customReasonDiv.style.display = 'none';
+        
+        // Убираем обязательность полей
+        amountInput.required = false;
+        reasonInput.required = false;
+        
+        // Устанавливаем значения для отправки
+        amountInput.value = amount;
+        reasonInput.value = name;
+        
+    } else {
+        // Ничего не выбрано
+        customAmountDiv.style.display = 'none';
+        customReasonDiv.style.display = 'none';
+        selectedTemplateInfo.style.display = 'none';
+        
+        amountInput.required = false;
+        reasonInput.required = false;
+    }
 }
 </script>
 {% endif %}

@@ -431,8 +431,13 @@ def groups(request):
                 except Exception as e:
                     messages.error(request, 'Произошла ошибка при начислении AstroCoins')
         
+        # Получаем шаблоны начислений для учителей
+        from .models import AwardReason
+        award_reasons = AwardReason.objects.all().order_by('coins')
+        
         context.update({
             'teacher_groups': groups,
+            'award_reasons': award_reasons,
             'is_teacher': True
         })
     else:
@@ -655,6 +660,7 @@ def user_management(request):
                     birth_date = request.POST.get('birth_date')
                     parent_full_name = request.POST.get('parent_full_name')
                     parent_phone = request.POST.get('parent_phone')
+                    balance = request.POST.get('balance')
                     
                     if not all([birth_date, parent_full_name, parent_phone]):
                         messages.error(request, 'Для ученика необходимо заполнить все дополнительные поля')
@@ -663,6 +669,32 @@ def user_management(request):
                     user.birth_date = birth_date
                     user.parent_full_name = parent_full_name
                     user.parent_phone = parent_phone
+                    
+                    # Обновляем баланс, если указан
+                    if balance is not None and balance != '':
+                        try:
+                            new_balance = int(balance)
+                            if new_balance >= 0:
+                                profile = Profile.objects.get_or_create(user=user)[0]
+                                old_balance = profile.astrocoins
+                                profile.astrocoins = new_balance
+                                profile.save()
+                                
+                                # Записываем транзакцию об изменении баланса администратором
+                                if old_balance != new_balance:
+                                    Transaction.objects.create(
+                                        sender=request.user,
+                                        receiver=user,
+                                        amount=abs(new_balance - old_balance),
+                                        transaction_type='EARN' if new_balance > old_balance else 'SPEND',
+                                        description=f'Корректировка баланса администратором (было: {old_balance}, стало: {new_balance})'
+                                    )
+                            else:
+                                messages.error(request, 'Баланс не может быть отрицательным')
+                                return redirect('user_management')
+                        except ValueError:
+                            messages.error(request, 'Некорректное значение баланса')
+                            return redirect('user_management')
                     
                     if group_id:
                         group = Group.objects.get(id=group_id)
