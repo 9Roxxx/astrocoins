@@ -3,6 +3,41 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.utils.text import slugify
 from .validators import validate_file_type, validate_file_size
+import uuid
+import re
+
+def create_cyrillic_slug(text):
+    """Создает slug с поддержкой кириллицы"""
+    # Словарь для транслитерации кириллицы
+    cyrillic_to_latin = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'YO',
+        'Ж': 'ZH', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
+        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
+        'Ф': 'F', 'Х': 'H', 'Ц': 'TS', 'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SCH',
+        'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'YU', 'Я': 'YA'
+    }
+    
+    # Транслитерируем кириллицу
+    transliterated = ''
+    for char in text:
+        if char in cyrillic_to_latin:
+            transliterated += cyrillic_to_latin[char]
+        else:
+            transliterated += char
+    
+    # Применяем стандартный slugify к транслитерированному тексту
+    slug = slugify(transliterated)
+    
+    # Если slug пустой, генерируем уникальный
+    if not slug:
+        slug = f"category-{uuid.uuid4().hex[:8]}"
+    
+    return slug
 
 class User(AbstractUser):
     """
@@ -72,7 +107,17 @@ class ProductCategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            # Используем нашу функцию с поддержкой кириллицы
+            base_slug = create_cyrillic_slug(self.name)
+            slug = base_slug
+            
+            # Проверяем уникальность slug
+            counter = 1
+            while ProductCategory.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
         super().save(*args, **kwargs)
 
 class Product(models.Model):
