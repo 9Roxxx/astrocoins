@@ -305,9 +305,7 @@ def profile(request):
 def profile_edit(request, user_id=None):
     # Если user_id не указан, значит пользователь пытается редактировать свой профиль
     if user_id is None:
-        if not request.user.is_teacher():
-            messages.error(request, 'У вас нет прав на редактирование профиля')
-            return redirect('profile')
+        # Любой пользователь может редактировать свой профиль
         user_to_edit = request.user
     else:
         # Проверяем права на редактирование чужого профиля
@@ -347,7 +345,12 @@ def profile_edit(request, user_id=None):
             else:
                 messages.error(request, 'Новый пароль не может быть пустым')
         
-        return redirect('profile' if user_id is None else 'student_profile', student_id=user_id)
+        if user_id is None:
+            # Если редактируем свой профиль - перенаправляем на свой профиль
+            return redirect('profile')
+        else:
+            # Если редактируем чужой профиль - перенаправляем на профиль студента
+            return redirect('student_profile', student_id=user_id)
 
     context = {
         'user_to_edit': user_to_edit,
