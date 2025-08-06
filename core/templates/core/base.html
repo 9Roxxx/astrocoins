@@ -140,7 +140,7 @@
 
     </style>
 </head>
-<body {% if background_image %}class="dynamic-background" style="background-image: url('{{ background_image }}');"{% endif %}>
+<body {% if background_image %}class="dynamic-background d-flex flex-column min-vh-100" style="background-image: url('{{ background_image }}');"{% else %}class="d-flex flex-column min-vh-100"{% endif %}>
 
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
@@ -247,7 +247,137 @@
         {% endif %}
     </div>
 
-    {% block content %}{% endblock %}
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer mt-auto py-4 bg-dark text-light">
+        <div class="container">
+            <div class="row">
+                <!-- Контактная информация -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-graduation-cap me-2"></i>Алгоритмика
+                    </h5>
+                    <p class="small mb-2">Международная школа программирования и математики</p>
+                    <p class="small mb-1">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:+79532234987" class="text-light text-decoration-none">+7 (953) 223-49-87</a>
+                    </p>
+                    <p class="small mb-1">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:algoritmika_25@mail.ru" class="text-light text-decoration-none">algoritmika_25@mail.ru</a>
+                    </p>
+                    <p class="small mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        Находка, Находкинский проспект 12, 11 этаж
+                    </p>
+                </div>
+
+                <!-- Ссылки на документы -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="text-primary mb-3">Документы</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/institutions" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-building me-2"></i>Контактные данные учреждений
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/page/usloviya-vozvrata-i-obmena" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-undo me-2"></i>Условия возврата
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/page/opisanie-processa-peredachi-dannyh" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-shield-alt me-2"></i>Передача данных
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/page/privacy-policy" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-user-shield me-2"></i>Политика конфиденциальности
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Поддержка и программы -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="text-primary mb-3">Поддержка</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/page/support" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-headset me-2"></i>Техническая поддержка
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/page/bonusnaya-programma-astrokoiny" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-coins me-2"></i>Бонусная программа: Астрокоины
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://algoritmika25.ru/changelog" target="_blank" class="text-light text-decoration-none">
+                                <i class="fas fa-code-branch me-2"></i>История изменений
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="small mb-2">Техподдержка:</p>
+                        <p class="small mb-1">
+                            <i class="fas fa-phone me-2"></i>
+                            <a href="tel:+79012725365" class="text-light text-decoration-none">8 (901) 272-53-65</a>
+                        </p>
+                        <p class="small mb-0">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:76@algoritmika.org" class="text-light text-decoration-none">76@algoritmika.org</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Методы оплаты -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="text-primary mb-3">Способы оплаты</h6>
+                    <div class="payment-methods mb-3">
+                        <img src="https://www.edel-flora.ru/img/karty.png" 
+                             alt="Способы оплаты" 
+                             class="img-fluid rounded"
+                             style="max-height: 60px;">
+                    </div>
+                    <p class="small text-muted mb-2">
+                        Принимаем к оплате банковские карты МИР, Visa, MasterCard, JCB
+                    </p>
+                    <p class="small text-muted mb-0">
+                        <i class="fas fa-lock me-1"></i>
+                        Безопасные платежи через ПАО Сбербанк
+                    </p>
+                </div>
+            </div>
+
+            <!-- Разделитель -->
+            <hr class="my-4 border-secondary">
+
+            <!-- Нижняя часть футера -->
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="small mb-0 text-muted">
+                        <i class="fas fa-copyright me-1"></i>
+                        Личный кабинет Алгоритмики © 2018 - 2025
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="small mb-0 text-muted">
+                        <i class="fas fa-code me-1"></i>
+                        Версия: 1.8.6
+                        <span class="ms-2">
+                            <i class="fas fa-coins text-warning me-1"></i>
+                            Система Астрокоинов
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
