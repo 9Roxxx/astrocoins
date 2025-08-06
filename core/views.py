@@ -381,6 +381,35 @@ def profile_edit(request, user_id=None):
 def knowledge_base(request):
     return render(request, 'core/knowledge_base.html')
 
+# Страницы футера
+def institutions(request):
+    """Страница с контактными данными учреждений"""
+    return render(request, 'core/footer/institutions.html')
+
+def return_policy(request):
+    """Страница с условиями возврата"""
+    return render(request, 'core/footer/return_policy.html')
+
+def data_transfer(request):
+    """Страница с описанием процесса передачи данных"""
+    return render(request, 'core/footer/data_transfer.html')
+
+def privacy_policy(request):
+    """Страница с политикой конфиденциальности"""
+    return render(request, 'core/footer/privacy_policy.html')
+
+def support(request):
+    """Страница технической поддержки"""
+    return render(request, 'core/footer/support.html')
+
+def astrocoins_program(request):
+    """Страница бонусной программы Астрокоины"""
+    return render(request, 'core/footer/astrocoins_program.html')
+
+def changelog(request):
+    """Страница истории изменений"""
+    return render(request, 'core/footer/changelog.html')
+
 @login_required
 def groups(request):
     context = {}

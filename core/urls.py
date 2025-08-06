@@ -24,4 +24,13 @@ urlpatterns = [
     path('user-management/', views.user_management, name='user_management'),
     path('student/<int:student_id>/coins/', views.manage_coins, name='manage_coins'),
     path('student/<int:student_id>/profile/', views.student_profile, name='student_profile'),
+    
+    # Страницы футера
+    path('institutions/', views.institutions, name='institutions'),
+    path('return-policy/', views.return_policy, name='return_policy'),
+    path('data-transfer/', views.data_transfer, name='data_transfer'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('support/', views.support, name='support'),
+    path('astrocoins-program/', views.astrocoins_program, name='astrocoins_program'),
+    path('changelog/', views.changelog, name='changelog'),
 ]

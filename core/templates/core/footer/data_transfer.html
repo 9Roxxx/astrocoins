@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Описание процесса передачи данных - Алгоритмика{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-shield-alt text-primary me-3"></i>
+                Описание процесса передачи данных
+            </h1>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Безопасность платежей</h5>
+                </div>
+                <div class="card-body">
+                    <p>Все платежи обрабатываются через защищенные каналы связи с использованием современных технологий шифрования.</p>
+                    <ul>
+                        <li>SSL-шифрование всех данных</li>
+                        <li>Обработка платежей через ПАО Сбербанк</li>
+                        <li>Соответствие стандартам PCI DSS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Защита персональных данных</h5>
+                </div>
+                <div class="card-body">
+                    <p>Мы обеспечиваем защиту персональных данных учеников и родителей в соответствии с требованиями ФЗ-152.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <h5><i class="fas fa-envelope me-2"></i>Контакты</h5>
+                <p class="mb-0">
+                    По вопросам безопасности данных: 
+                    <a href="mailto:reply@algoritmika25.store">reply@algoritmika25.store</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
