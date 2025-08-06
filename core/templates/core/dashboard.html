@@ -56,15 +56,15 @@
                                 <span class="input-group-text">
                                     <i class="fas fa-coins"></i>
                                 </span>
-                                <input type="number" 
+                                                                <input type="number" 
                                        class="form-control" 
                                        id="amount" 
                                        name="amount" 
-                                       min="1" 
-                                       step="1" 
+                                       min="20" 
+                                       step="1"
                                        required
                                        aria-describedby="amountHelp"
-                                       placeholder="Введите сумму (целое число)">
+                                       placeholder="Введите сумму (минимум 20 AC)">
                                 <span class="input-group-text">AC</span>
                             </div>
                             <div id="amountHelp" class="form-text">
@@ -72,7 +72,7 @@
                                 Доступно: <span id="availableAmount" class="fw-bold astrocoins-balance">{{ profile.astrocoins }}</span> AC
                                 <br>
                                 <i class="fas fa-percentage me-1 text-warning"></i>
-                                <span class="text-warning">Комиссия за перевод: 5%</span>
+                                <span class="text-warning">Комиссия за перевод: 5% (минимум 20 AC)</span>
                             </div>
                             <div class="invalid-feedback">Пожалуйста, введите корректную сумму</div>
                         </div>
@@ -153,6 +153,10 @@ document.addEventListener('DOMContentLoaded', function() {
             amountInput.setCustomValidity('Сумма должна быть больше 0');
             updateCommissionInfo(0);
             return false;
+        } else if (amount < 20) {
+            amountInput.setCustomValidity('Минимальная сумма перевода: 20 AC');
+            updateCommissionInfo(0);
+            return false;
         } else {
             const commission = Math.floor(amount * 0.05);
             const totalCost = amount + commission;
@@ -188,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 Доступно: <span id="availableAmount" class="fw-bold astrocoins-balance">${availableAmount.textContent}</span> AC
                 <br>
                 <i class="fas fa-percentage me-1 text-warning"></i>
-                <span class="text-warning">Комиссия за перевод: 5%</span>
+                <span class="text-warning">Комиссия за перевод: 5% (минимум 20 AC)</span>
             `;
         }
     }

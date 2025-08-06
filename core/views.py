@@ -217,6 +217,9 @@ def transfer_coins(request):
             if amount <= 0:
                 return JsonResponse({'success': False, 'error': 'Сумма перевода должна быть положительной!'})
             
+            if amount < 20:
+                return JsonResponse({'success': False, 'error': 'Минимальная сумма перевода: 20 AC'})
+            
             with transaction.atomic():
                 receiver = User.objects.select_for_update().get(username=receiver_username)
                 sender_profile = Profile.objects.select_for_update().get(user=request.user)
