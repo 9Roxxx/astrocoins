@@ -300,12 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body">
                 {% if transactions %}
-                    <div class="transactions-container" style="max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #6c757d #f8f9fa;">
+                    <div class="transactions-container" style="max-height: 400px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #6c757d #f8f9fa;">
                         <div class="list-group" id="transactionsList">
                             {% for transaction in transactions %}
                                 <div class="list-group-item transaction-item">
-                                    <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div>
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div class="flex-grow-1 me-2">
                                             <h6 class="mb-1">
                                                 {% if transaction.transaction_type == 'EARN' %}
                                                     <span class="transaction-amount positive">
@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </h6>
                                             <p class="mb-1">{{ transaction.description }}</p>
                                         </div>
-                                        <small class="text-muted">
+                                        <small class="text-muted text-end flex-shrink-0">
                                             <i class="far fa-clock me-1"></i>{{ transaction.created_at|date:"d.m.Y H:i" }}
                                         </small>
                                     </div>
@@ -376,8 +376,16 @@ body {
 }
 
 /* Стилизованный скроллбар для WebKit браузеров */
+.transactions-container {
+    overflow-x: hidden !important;
+}
+
 .transactions-container::-webkit-scrollbar {
     width: 6px;
+}
+
+.transactions-container::-webkit-scrollbar-horizontal {
+    display: none;
 }
 
 .transactions-container::-webkit-scrollbar-track {
@@ -402,10 +410,34 @@ body {
 /* Анимация для новых транзакций */
 .transaction-item {
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .transaction-item:hover {
     background-color: #f8f9fa;
+}
+
+/* Предотвращение переполнения текста в транзакциях */
+.transaction-item .d-flex > div {
+    min-width: 0;
+    flex: 1;
+}
+
+.transaction-item p {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    margin-bottom: 0;
+}
+
+.transaction-item h6 {
+    margin-bottom: 0.25rem;
+}
+
+.transaction-item small {
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 </style>
 {% endblock %}
