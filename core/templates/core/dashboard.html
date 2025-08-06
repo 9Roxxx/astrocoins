@@ -299,40 +299,47 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body">
                 {% if transactions %}
-                    <div class="list-group" id="transactionsList">
-                        {% for transaction in transactions %}
-                            <div class="list-group-item transaction-item">
-                                <div class="d-flex w-100 justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-1">
-                                            {% if transaction.transaction_type == 'EARN' %}
-                                                <span class="transaction-amount positive">
-                                                    <i class="fas fa-plus-circle me-1"></i>{{ transaction.amount }} AC
-                                                </span>
-                                            {% elif transaction.transaction_type == 'SPEND' %}
-                                                <span class="transaction-amount negative">
-                                                    <i class="fas fa-minus-circle me-1"></i>{{ transaction.amount }} AC
-                                                </span>
-                                            {% else %}
-                                                {% if transaction.sender == user %}
+                    <div class="transactions-container" style="max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #6c757d #f8f9fa;">
+                        <div class="list-group" id="transactionsList">
+                            {% for transaction in transactions %}
+                                <div class="list-group-item transaction-item">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if transaction.transaction_type == 'EARN' %}
+                                                    <span class="transaction-amount positive">
+                                                        <i class="fas fa-plus-circle me-1"></i>{{ transaction.amount }} AC
+                                                    </span>
+                                                {% elif transaction.transaction_type == 'SPEND' %}
                                                     <span class="transaction-amount negative">
-                                                        <i class="fas fa-arrow-right me-1"></i>{{ transaction.amount }} AC
+                                                        <i class="fas fa-minus-circle me-1"></i>{{ transaction.amount }} AC
                                                     </span>
                                                 {% else %}
-                                                    <span class="transaction-amount positive">
-                                                        <i class="fas fa-arrow-left me-1"></i>{{ transaction.amount }} AC
-                                                    </span>
+                                                    {% if transaction.sender == user %}
+                                                        <span class="transaction-amount negative">
+                                                            <i class="fas fa-arrow-right me-1"></i>{{ transaction.amount }} AC
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="transaction-amount positive">
+                                                            <i class="fas fa-arrow-left me-1"></i>{{ transaction.amount }} AC
+                                                        </span>
+                                                    {% endif %}
                                                 {% endif %}
-                                            {% endif %}
-                                        </h6>
-                                        <p class="mb-1">{{ transaction.description }}</p>
+                                            </h6>
+                                            <p class="mb-1">{{ transaction.description }}</p>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock me-1"></i>{{ transaction.created_at|date:"d.m.Y H:i" }}
+                                        </small>
                                     </div>
-                                    <small class="text-muted">
-                                        <i class="far fa-clock me-1"></i>{{ transaction.created_at|date:"d.m.Y H:i" }}
-                                    </small>
                                 </div>
-                            </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list me-1"></i>Посмотреть всю историю
+                        </a>
                     </div>
                 {% else %}
                     <div class="text-center py-4">
@@ -344,4 +351,39 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+
+<style>
+/* Стилизованный скроллбар для WebKit браузеров */
+.transactions-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.transactions-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 3px;
+}
+
+.transactions-container::-webkit-scrollbar-thumb {
+    background: #6c757d;
+    border-radius: 3px;
+}
+
+.transactions-container::-webkit-scrollbar-thumb:hover {
+    background: #495057;
+}
+
+/* Плавная прокрутка */
+.transactions-container {
+    scroll-behavior: smooth;
+}
+
+/* Анимация для новых транзакций */
+.transaction-item {
+    transition: all 0.3s ease;
+}
+
+.transaction-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}

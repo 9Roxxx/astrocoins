@@ -41,7 +41,7 @@ def dashboard(request):
     profile = Profile.objects.get_or_create(user=request.user)[0]
     transactions = Transaction.objects.filter(
         Q(sender=request.user) | Q(receiver=request.user)
-    ).order_by('-created_at')[:10]
+    ).order_by('-created_at')[:15]
     
     # Выбираем случайный фон при каждом входе
     random_background = random.choice(GAME_BACKGROUNDS)
