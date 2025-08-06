@@ -65,7 +65,7 @@ class User(AbstractUser):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    astrocoins = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    astrocoins = models.IntegerField(default=0)  # Изменено на целые числа
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -80,7 +80,7 @@ class Transaction(models.Model):
 
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_transactions')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_transactions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.IntegerField()  # Изменено на целые числа
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -124,7 +124,7 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)  # blank=True позволит создать slug автоматически
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.IntegerField()  # Изменено на целые числа
     image = models.ImageField(
         upload_to='products/',
         null=True,

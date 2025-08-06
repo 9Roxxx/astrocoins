@@ -4,16 +4,29 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
+    <!-- Левая колонка: Информация о пользователе -->
+    <div class="col-lg-4 col-md-12 mb-4">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="card-title mb-0">Информация о пользователе</h5>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Информация о пользователе
+                </h5>
             </div>
-            <div class="card-body">
-                <h2>{{ user.username }}</h2>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                </div>
+                <h3>{{ user.username }}</h3>
                 <p class="text-muted">{{ user.email }}</p>
-                <p><strong>Баланс:</strong> {{ profile.astrocoins }} AC</p>
-                <p><strong>Дата регистрации:</strong> {{ profile.created_at|date:"d.m.Y" }}</p>
+                <div class="mb-3">
+                    <span class="badge bg-primary fs-6">
+                        <i class="fas fa-coins me-1"></i>{{ profile.astrocoins }} AC
+                    </span>
+                </div>
+                <p class="small text-muted">
+                    <i class="fas fa-calendar me-1"></i>
+                    Регистрация: {{ profile.created_at|date:"d.m.Y" }}
+                </p>
                 {% if user.is_teacher %}
                 <a href="{% url 'profile_edit' %}" class="btn btn-primary">
                     <i class="fas fa-edit me-2"></i>Редактировать профиль
@@ -23,7 +36,8 @@
         </div>
     </div>
 
-    <div class="col-md-8">
+    <!-- Правая колонка: История транзакций и покупок -->
+    <div class="col-lg-8 col-md-12">
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">История транзакций</h5>
