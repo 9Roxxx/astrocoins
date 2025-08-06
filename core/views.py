@@ -550,6 +550,46 @@ def student_profile(request, student_id):
     return render(request, 'core/student_profile.html', context)
 
 @login_required
+def activity_monitoring(request):
+    """Мониторинг активности учеников (покупки и переводы)"""
+    if not (request.user.is_teacher() or request.user.is_superuser):
+        raise PermissionDenied("Только преподаватели и администраторы могут просматривать активность")
+    
+    # Определяем какие пользователи доступны для просмотра
+    if request.user.is_superuser:
+        # Администратор видит всех
+        available_users = User.objects.filter(role='student').select_related('profile', 'group')
+        purchases = Purchase.objects.all().select_related('user', 'product', 'user__profile', 'user__group').order_by('-created_at')
+        transfers = Transaction.objects.filter(transaction_type='TRANSFER').select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group').order_by('-created_at')
+    else:
+        # Учитель видит только своих учеников
+        available_users = User.objects.filter(role='student', group__teacher=request.user).select_related('profile', 'group')
+        purchases = Purchase.objects.filter(user__group__teacher=request.user).select_related('user', 'product', 'user__profile', 'user__group').order_by('-created_at')
+        transfers = Transaction.objects.filter(
+            transaction_type='TRANSFER'
+        ).filter(
+            Q(sender__group__teacher=request.user) | Q(receiver__group__teacher=request.user)
+        ).select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group').order_by('-created_at')
+    
+    # Пагинация для покупок
+    purchases_paginator = Paginator(purchases, 20)
+    purchases_page = request.GET.get('purchases_page')
+    purchases = purchases_paginator.get_page(purchases_page)
+    
+    # Пагинация для переводов
+    transfers_paginator = Paginator(transfers, 20)
+    transfers_page = request.GET.get('transfers_page')
+    transfers = transfers_paginator.get_page(transfers_page)
+    
+    context = {
+        'available_users': available_users,
+        'purchases': purchases,
+        'transfers': transfers,
+        'is_superuser': request.user.is_superuser,
+    }
+    return render(request, 'core/activity_monitoring.html', context)
+
+@login_required
 def user_management(request):
     if not request.user.is_superuser:
         raise PermissionDenied("Только администраторы могут управлять пользователями")

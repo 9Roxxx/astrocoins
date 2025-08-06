@@ -181,6 +181,13 @@
                             База знаний
                         </a>
                     </li>
+                    {% if user.is_teacher or user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'activity_monitoring' %}">
+                            <i class="fas fa-chart-line me-2"></i>Мониторинг активности
+                        </a>
+                    </li>
+                    {% endif %}
                     {% if user.is_superuser %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'user_management' %}">

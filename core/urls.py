@@ -20,6 +20,7 @@ urlpatterns = [
     path('knowledge-base/', views.knowledge_base, name='knowledge_base'),
     path('groups/', views.groups, name='groups'),
     path('news/', views.news, name='news'),
+    path('activity-monitoring/', views.activity_monitoring, name='activity_monitoring'),
     path('user-management/', views.user_management, name='user_management'),
     path('student/<int:student_id>/coins/', views.manage_coins, name='manage_coins'),
     path('student/<int:student_id>/profile/', views.student_profile, name='student_profile'),
