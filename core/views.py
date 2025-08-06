@@ -222,26 +222,42 @@ def transfer_coins(request):
                 sender_profile = Profile.objects.select_for_update().get(user=request.user)
                 receiver_profile = Profile.objects.select_for_update().get(user=receiver)
                 
-                if sender_profile.astrocoins < amount:
-                    return JsonResponse({'success': False, 'error': 'Недостаточно AstroCoins для перевода!'})
-                
                 if receiver == request.user:
                     return JsonResponse({'success': False, 'error': 'Нельзя переводить AstroCoins самому себе!'})
                 
-                # Выполняем перевод
-                sender_profile.astrocoins -= amount
-                receiver_profile.astrocoins += amount
+                # Рассчитываем комиссию 5% за перевод
+                commission = int(amount * 0.05)  # 5% комиссия, округляем до целого
+                total_cost = amount + commission  # Общая сумма к списанию
+                
+                if sender_profile.astrocoins < total_cost:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': f'Недостаточно AstroCoins! Нужно {total_cost} AC (перевод {amount} AC + комиссия {commission} AC)'
+                    })
+                
+                # Выполняем перевод с комиссией
+                sender_profile.astrocoins -= total_cost  # Списываем сумму + комиссию
+                receiver_profile.astrocoins += amount    # Получатель получает только основную сумму
                 
                 sender_profile.save()
                 receiver_profile.save()
                 
-                # Записываем транзакцию
+                # Записываем транзакцию для отправителя (с комиссией)
+                Transaction.objects.create(
+                    sender=request.user,
+                    receiver=receiver,
+                    amount=total_cost,
+                    transaction_type='TRANSFER',
+                    description=f'Перевод к {receiver_username} ({amount} AC + комиссия {commission} AC)'
+                )
+                
+                # Записываем транзакцию для получателя (без комиссии)
                 Transaction.objects.create(
                     sender=request.user,
                     receiver=receiver,
                     amount=amount,
                     transaction_type='TRANSFER',
-                    description=f'Перевод от {request.user.username} к {receiver_username}'
+                    description=f'Перевод от {request.user.username}'
                 )
                 
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -255,12 +271,12 @@ def transfer_coins(request):
                     
                     return JsonResponse({
                         'success': True,
-                        'message': f'Успешно переведено {amount} AstroCoins пользователю {receiver_username}!',
+                        'message': f'Успешно переведено {amount} AC пользователю {receiver_username}! Комиссия: {commission} AC',
                         'new_balance': str(sender_profile.astrocoins),
                         'transaction_html': transaction_html
                     })
                 else:
-                    messages.success(request, f'Успешно переведено {amount} AstroCoins пользователю {receiver_username}!')
+                    messages.success(request, f'Успешно переведено {amount} AC пользователю {receiver_username}! Списано: {total_cost} AC (включая комиссию {commission} AC)')
                     return redirect('dashboard')
                 
         except User.DoesNotExist:

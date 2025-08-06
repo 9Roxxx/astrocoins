@@ -70,6 +70,9 @@
                             <div id="amountHelp" class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Доступно: <span id="availableAmount" class="fw-bold astrocoins-balance">{{ profile.astrocoins }}</span> AC
+                                <br>
+                                <i class="fas fa-percentage me-1 text-warning"></i>
+                                <span class="text-warning">Комиссия за перевод: 5%</span>
                             </div>
                             <div class="invalid-feedback">Пожалуйста, введите корректную сумму</div>
                         </div>
@@ -143,18 +146,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const transactionsList = document.getElementById('transactionsList');
 
     function validateAmount() {
-        const amount = parseFloat(amountInput.value);
-        const available = parseFloat(availableAmount.textContent);
+        const amount = parseInt(amountInput.value);
+        const available = parseInt(availableAmount.textContent);
         
         if (isNaN(amount) || amount <= 0) {
             amountInput.setCustomValidity('Сумма должна быть больше 0');
-            return false;
-        } else if (amount > available) {
-            amountInput.setCustomValidity('Недостаточно средств');
+            updateCommissionInfo(0);
             return false;
         } else {
-            amountInput.setCustomValidity('');
-            return true;
+            const commission = Math.floor(amount * 0.05);
+            const totalCost = amount + commission;
+            
+            updateCommissionInfo(amount);
+            
+            if (totalCost > available) {
+                amountInput.setCustomValidity(`Недостаточно средств! Нужно ${totalCost} AC (${amount} AC + комиссия ${commission} AC)`);
+                return false;
+            } else {
+                amountInput.setCustomValidity('');
+                return true;
+            }
+        }
+    }
+    
+    function updateCommissionInfo(amount) {
+        const helpDiv = document.getElementById('amountHelp');
+        const commission = amount > 0 ? Math.floor(amount * 0.05) : 0;
+        const totalCost = amount + commission;
+        
+        if (amount > 0) {
+            helpDiv.innerHTML = `
+                <i class="fas fa-info-circle me-1"></i>
+                Доступно: <span id="availableAmount" class="fw-bold astrocoins-balance">${availableAmount.textContent}</span> AC
+                <br>
+                <i class="fas fa-calculator me-1 text-info"></i>
+                <span class="text-info">К списанию: ${totalCost} AC (${amount} AC + комиссия ${commission} AC)</span>
+            `;
+        } else {
+            helpDiv.innerHTML = `
+                <i class="fas fa-info-circle me-1"></i>
+                Доступно: <span id="availableAmount" class="fw-bold astrocoins-balance">${availableAmount.textContent}</span> AC
+                <br>
+                <i class="fas fa-percentage me-1 text-warning"></i>
+                <span class="text-warning">Комиссия за перевод: 5%</span>
+            `;
         }
     }
 
