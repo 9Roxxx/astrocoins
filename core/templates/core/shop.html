@@ -1,0 +1,481 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}Магазин - Астрокоины{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>Магазин
+                    </h5>
+                    {% if user.is_superuser %}
+                    <div class="btn-group">
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            <i class="fas fa-plus me-2"></i>Добавить категорию
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="fas fa-plus me-2"></i>Добавить товар
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category in categories %}
+                        <div class="col-12 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="{% if category.is_featured %}text-primary{% endif %} mb-0">
+                                    <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
+                                    {% if category.is_featured %}<span class="badge bg-primary">🔥 TOP</span>{% endif %}
+                                </h4>
+                                {% if user.is_superuser %}
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary btn-sm" 
+                                            onclick="editCategory('{{ category.id }}')"
+                                            title="Редактировать категорию">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            onclick="deleteCategory('{{ category.id }}', '{{ category.name }}')"
+                                            title="Удалить категорию">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="row g-4">
+                                {% for product in category.products.all %}
+                                {% if product.available %}
+                                <div class="col-md-4 col-lg-3">
+                                    <div class="card h-100 product-card">
+                                        {% if product.image %}
+                                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"
+                                             style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                             style="height: 200px;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ product.name }}</h5>
+                                            <p class="card-text small text-muted">{{ product.description }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="text-primary fw-bold">{{ product.price }} AC</span>
+                                                {% if product.stock > 0 %}
+                                                <button class="btn btn-primary btn-sm" 
+                                                        onclick="showPurchaseConfirmation('{{ product.id }}', '{{ product.name }}', {{ product.price }})">
+                                                    <i class="fas fa-shopping-cart me-1"></i>Купить
+                                                </button>
+                                                {% else %}
+                                                <button class="btn btn-secondary btn-sm" disabled>
+                                                    <i class="fas fa-times me-1"></i>Нет в наличии
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                            {% if user.is_superuser %}
+                                            <div class="mt-2 d-flex justify-content-between">
+                                                <button class="btn btn-outline-primary btn-sm" 
+                                                        onclick="editProduct('{{ product.id }}')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm"
+                                                        onclick="deleteProduct('{{ product.id }}', '{{ product.name }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% if product.is_digital %}
+                                        <div class="card-footer bg-info bg-opacity-10 text-info">
+                                            <i class="fas fa-digital me-1"></i>Цифровой товар
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-store fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Товары пока не добавлены</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_superuser %}
+    <!-- Модальное окно добавления категории -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить категорию</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'add_category' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label">Название категории</label>
+                            <input type="text" class="form-control" name="name" id="categoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryDescription" class="form-label">Описание</label>
+                            <textarea class="form-control" name="description" id="categoryDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryIcon" class="form-label">Иконка (Font Awesome)</label>
+                            <input type="text" class="form-control" name="icon" id="categoryIcon" value="fas fa-cube" placeholder="fas fa-cube">
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryOrder" class="form-label">Порядок сортировки</label>
+                            <input type="number" class="form-control" name="order" id="categoryOrder" value="0">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_featured" id="categoryFeatured">
+                            <label class="form-check-label" for="categoryFeatured">
+                                Популярная категория (🔥 TOP)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-success">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования категории -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактировать категорию</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'edit_category' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="category_id" id="editCategoryId">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">Название категории</label>
+                            <input type="text" class="form-control" name="name" id="editCategoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryDescription" class="form-label">Описание</label>
+                            <textarea class="form-control" name="description" id="editCategoryDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryIcon" class="form-label">Иконка (Font Awesome)</label>
+                            <input type="text" class="form-control" name="icon" id="editCategoryIcon" placeholder="fas fa-cube">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryOrder" class="form-label">Порядок сортировки</label>
+                            <input type="number" class="form-control" name="order" id="editCategoryOrder">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_featured" id="editCategoryFeatured">
+                            <label class="form-check-label" for="editCategoryFeatured">
+                                Популярная категория (🔥 TOP)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления товара -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus me-2"></i>Добавление товара
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" enctype="multipart/form-data" action="{% url 'add_product' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Название товара</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Категория</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Выберите категорию...</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">
+                                    {{ category.name }}
+                                    {% if category.is_featured %}🔥{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Цена (AC)</label>
+                            <input type="number" class="form-control" id="price" name="price" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="stock" class="form-label">Количество</label>
+                            <input type="number" class="form-control" id="stock" name="stock" min="0" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Изображение</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_digital" name="is_digital">
+                                <label class="form-check-label" for="is_digital">
+                                    Цифровой товар
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="featured" name="featured">
+                                <label class="form-check-label" for="featured">
+                                    Популярный товар
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Добавить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования товара -->
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>Редактирование товара
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" enctype="multipart/form-data" action="{% url 'edit_product' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="editProductId" name="product_id">
+                    <div class="modal-body">
+                        <!-- Те же поля, что и в форме добавления -->
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Название товара</label>
+                            <input type="text" class="form-control" id="editName" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editCategory" class="form-label">Категория</label>
+                            <select class="form-select" id="editCategory" name="category" required>
+                                <option value="">Выберите категорию...</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">
+                                    {{ category.name }}
+                                    {% if category.is_featured %}🔥{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Описание</label>
+                            <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editPrice" class="form-label">Цена (AC)</label>
+                            <input type="number" class="form-control" id="editPrice" name="price" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editStock" class="form-label">Количество</label>
+                            <input type="number" class="form-control" id="editStock" name="stock" min="0" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editImage" class="form-label">Изображение</label>
+                            <input type="file" class="form-control" id="editImage" name="image" accept="image/*">
+                            <small class="text-muted">Оставьте пустым, чтобы сохранить текущее изображение</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editIsDigital" name="is_digital">
+                                <label class="form-check-label" for="editIsDigital">
+                                    Цифровой товар
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editFeatured" name="featured">
+                                <label class="form-check-label" for="editFeatured">
+                                    Популярный товар
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Модальное окно подтверждения покупки -->
+    <div class="modal fade" id="purchaseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Подтверждение покупки</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы действительно хотите купить <span id="productName" class="fw-bold"></span>?</p>
+                    <p>Стоимость: <span id="productPrice" class="text-primary fw-bold"></span> AC</p>
+                    <p>Ваш баланс: <span class="text-success fw-bold">{{ user.profile.astrocoins }} AC</span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Отмена
+                    </button>
+                    <form method="post" action="{% url 'purchase_product' 0 %}" id="purchaseForm">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Купить
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showPurchaseConfirmation(productId, productName, productPrice) {
+    document.getElementById('productName').textContent = productName;
+    document.getElementById('productPrice').textContent = productPrice;
+    document.getElementById('purchaseForm').action = "{% url 'purchase_product' 0 %}".replace('0', productId);
+    new bootstrap.Modal(document.getElementById('purchaseModal')).show();
+}
+
+function editProduct(productId) {
+    // Загрузка данных товара через AJAX
+    fetch(`/api/product/${productId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editProductId').value = data.id;
+            document.getElementById('editName').value = data.name;
+            document.getElementById('editCategory').value = data.category;
+            document.getElementById('editDescription').value = data.description;
+            document.getElementById('editPrice').value = data.price;
+            document.getElementById('editStock').value = data.stock;
+            document.getElementById('editIsDigital').checked = data.is_digital;
+            document.getElementById('editFeatured').checked = data.featured;
+            new bootstrap.Modal(document.getElementById('editProductModal')).show();
+        });
+}
+
+function deleteProduct(productId, productName) {
+    if (confirm(`Вы действительно хотите удалить товар "${productName}"?`)) {
+        fetch(`/api/product/${productId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(() => location.reload());
+    }
+}
+
+// Функции для управления категориями
+function editCategory(categoryId) {
+    // Загрузка данных категории через AJAX
+    fetch(`/api/category/${categoryId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editCategoryId').value = data.id;
+            document.getElementById('editCategoryName').value = data.name;
+            document.getElementById('editCategoryDescription').value = data.description;
+            document.getElementById('editCategoryIcon').value = data.icon;
+            document.getElementById('editCategoryOrder').value = data.order;
+            document.getElementById('editCategoryFeatured').checked = data.is_featured;
+            new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при загрузке данных категории');
+        });
+}
+
+function deleteCategory(categoryId, categoryName) {
+    if (confirm(`Вы действительно хотите удалить категорию "${categoryName}"?\nВнимание: это действие нельзя отменить!`)) {
+        const formData = new FormData();
+        formData.append('category_id', categoryId);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        fetch('{% url "delete_category" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении категории');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при удалении категории');
+        });
+    }
+}
+</script>
+{% endblock %}

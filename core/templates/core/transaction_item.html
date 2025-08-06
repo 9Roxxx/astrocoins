@@ -1,0 +1,20 @@
+{% load i18n %}
+<div class="list-group-item transaction-item">
+    <div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1">
+            {% if transaction.transaction_type == 'EARN' %}
+                <span class="text-success">+{{ transaction.amount }} AC</span>
+            {% elif transaction.transaction_type == 'SPEND' %}
+                <span class="text-danger">-{{ transaction.amount }} AC</span>
+            {% else %}
+                {% if transaction.sender == user %}
+                    <span class="text-danger">-{{ transaction.amount }} AC</span>
+                {% else %}
+                    <span class="text-success">+{{ transaction.amount }} AC</span>
+                {% endif %}
+            {% endif %}
+        </h6>
+        <small>{{ transaction.created_at|date:"d.m.Y H:i" }}</small>
+    </div>
+    <p class="mb-1">{{ transaction.description }}</p>
+</div>

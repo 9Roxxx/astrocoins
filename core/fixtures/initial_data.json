@@ -1,0 +1,54 @@
+[
+    {
+        "model": "core.product",
+        "pk": 1,
+        "fields": {
+            "name": "Футболка Алгоритмика",
+            "slug": "futbolka-algoritmika",
+            "description": "Стильная футболка с логотипом Алгоритмики",
+            "price": "500.00",
+            "available": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "core.product",
+        "pk": 2,
+        "fields": {
+            "name": "Кружка программиста",
+            "slug": "kruzhka-programmista",
+            "description": "Керамическая кружка с принтом 'Hello, World!'",
+            "price": "300.00",
+            "available": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "core.product",
+        "pk": 3,
+        "fields": {
+            "name": "Набор стикеров",
+            "slug": "nabor-stikerov",
+            "description": "Набор стикеров с логотипами языков программирования",
+            "price": "200.00",
+            "available": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "core.product",
+        "pk": 4,
+        "fields": {
+            "name": "Худи разработчика",
+            "slug": "hudi-razrabotchika",
+            "description": "Теплое худи с капюшоном и карманом-кенгуру",
+            "price": "1000.00",
+            "available": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

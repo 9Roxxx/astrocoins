@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Астрокоины{% endblock %}</title>
+    {% load static %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'css/algoritmika.css' %}" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <!-- Game Icons CSS -->
+    <style>
+        @keyframes coinSpin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+        
+        @keyframes starPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes trophyShine {
+            0% { filter: brightness(100%); }
+            50% { filter: brightness(150%); }
+            100% { filter: brightness(100%); }
+        }
+
+        .game-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .coin-balance {
+            transition: all 0.3s ease;
+        }
+
+        .coin-balance:hover .coin-icon {
+            animation: coinSpin 1s linear infinite;
+        }
+
+        .nav-link:hover .game-icon {
+            animation: starPulse 1s ease infinite;
+        }
+
+        /* Динамический фон */
+        body.dynamic-background {
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        body.dynamic-background::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        /* Улучшенные стили для карточек */
+        .card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            background-color: rgba(106, 61, 159, 0.1);
+            border-bottom: none;
+        }
+
+        /* Улучшенные стили для кнопок */
+        .btn {
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #6a3d9f, #8a5cbf);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #8a5cbf, #6a3d9f);
+        }
+
+        /* Улучшенные стили для навигации */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .trophy-icon {
+            animation: trophyShine 2s ease infinite;
+        }
+
+        /* Пасхалка: Секретный режим */
+        .secret-mode {
+            background: linear-gradient(45deg, #6a3d9f, #00b8d9, #ff6f61) !important;
+            background-size: 400% 400% !important;
+            animation: gradientBG 15s ease infinite !important;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Пасхалка: Звездное небо */
+        .star-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0;
+            transition: all 0.5s ease;
+            background: linear-gradient(to bottom, rgba(0, 4, 40, 0.95), rgba(0, 78, 146, 0.95));
+        }
+
+        .star-bg.active {
+            opacity: 1;
+        }
+
+        /* Обеспечиваем читаемость текста при активном звездном небе */
+        .star-bg.active ~ .navbar {
+            background: rgba(106, 61, 159, 0.9) !important;
+        }
+
+        .star-bg.active ~ .container .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+        }
+
+        .star-bg.active ~ .container .btn:not(.btn-link) {
+            backdrop-filter: blur(5px);
+        }
+
+        .star-bg.active ~ .container {
+            color: #000;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 4px #fff,
+                       0 0 8px #fff,
+                       0 0 12px #fff;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes starPulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body {% if background_image %}class="dynamic-background" style="background-image: url('{{ background_image }}');"{% endif %}>
+    <!-- Звездное небо (скрыто по умолчанию) -->
+    <div class="star-bg" id="starBg"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
+                <img src="{% static 'img/favicon.svg' %}" alt="Logo" width="30" height="30" class="me-2">
+                Астрокоины
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <img src="{% static 'img/brawl-stars-trophy.png' %}" alt="Trophy" class="game-icon trophy-icon">
+                            Главная
+                        </a>
+                    </li>
+                    {% if not user.is_teacher %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'shop' %}">
+                            <img src="{% static 'img/steam-shop.webp' %}" alt="Shop" class="game-icon">
+                            Магазин
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'groups' %}">
+                            <img src="{% static 'img/brawl-stars-team.png' %}" alt="Team" class="game-icon">
+                            {% if user.is_teacher %}Мои группы{% else %}Моя группа{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'knowledge_base' %}">
+                            <img src="{% static 'img/minecraft-book.png' %}" alt="Book" class="game-icon">
+                            База знаний
+                        </a>
+                    </li>
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user_management' %}">
+                            <i class="fas fa-users-cog me-2"></i>Управление пользователями
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link coin-balance" href="{% url 'profile' %}" id="coinBalance" 
+                           data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                           title="Нажми на монетки 5 раз быстро для сюрприза!">
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-coins me-2 coin-icon"></i>{{ user.profile.astrocoins }} AC
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-2"></i>{{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' %}">
+                                    <i class="fas fa-id-card me-2"></i>Профиль
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'account_logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_login' %}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-4">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация подсказок
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+        // Пасхалка 1: Конами-код для звездного неба
+        let konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up Up Down Down Left Right Left Right B A
+        let konamiIndex = 0;
+        let lastKeyTime = Date.now();
+
+        document.addEventListener('keydown', function(e) {
+            const currentTime = Date.now();
+            if (currentTime - lastKeyTime > 1000) { // Сброс через 1 секунду
+                konamiIndex = 0;
+            }
+            lastKeyTime = currentTime;
+
+            console.log('Key pressed:', e.keyCode); // Для отладки
+
+            if (e.keyCode === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    console.log('Konami code activated!'); // Для отладки
+                    toggleStarryBackground();
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+
+
+
+        // Создание звездного неба
+        function createStars() {
+            const starBg = document.getElementById('starBg');
+            const numberOfStars = 150; // Больше звезд
+            
+            // Очищаем предыдущие звезды
+            starBg.innerHTML = '';
+            
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Случайный размер звезды
+                const size = 1 + Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // Случайное положение
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // Случайная задержка и длительность анимации
+                const delay = Math.random() * 2;
+                const duration = 1 + Math.random() * 2;
+                star.style.animation = `starPulse ${duration}s ease infinite`;
+                star.style.animationDelay = `${delay}s`;
+                
+                // Случайная яркость
+                star.style.opacity = 0.5 + Math.random() * 0.5;
+                
+                starBg.appendChild(star);
+            }
+        }
+
+        function toggleStarryBackground() {
+            const starBg = document.getElementById('starBg');
+            if (starBg.classList.contains('active')) {
+                starBg.classList.remove('active');
+                setTimeout(() => {
+                    starBg.innerHTML = '';
+                }, 500); // Очищаем после анимации исчезновения
+            } else {
+                createStars();
+                starBg.classList.add('active');
+            }
+        }
+    });
+    </script>
+</body>
+</html>

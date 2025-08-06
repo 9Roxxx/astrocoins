@@ -1,0 +1,148 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}Управление астрокоинами - {{ student.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-coins me-2"></i>Управление астрокоинами
+                    </h5>
+                    <a href="{% url 'student_profile' student.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-user me-2"></i>Профиль ученика
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Информация об ученике</h6>
+                            <p class="mb-1">{{ student.get_full_name|default:student.username }}</p>
+                            <p class="mb-1">Группа: {{ student.group.name|default:"Не назначена" }}</p>
+                            <p class="mb-0">Баланс: {{ student.profile.astrocoins }} AC</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <!-- Форма начисления -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-plus-circle me-2"></i>Начисление астрокоинов
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="award">
+                                        
+                                        <div class="mb-3">
+                                            <label for="reason" class="form-label">Причина начисления</label>
+                                            <select class="form-select" id="reason" name="reason" required>
+                                                <option value="">Выберите причину...</option>
+                                                {% for reason in reasons %}
+                                                <option value="{{ reason.id }}" 
+                                                        data-coins="{{ reason.coins }}"
+                                                        data-cooldown="{{ reason.cooldown_days }}"
+                                                        {% if reason.is_special %}class="text-primary fw-bold"{% endif %}>
+                                                    {{ reason.name }} — {{ reason.coins }} AC
+                                                    {% if reason.cooldown_days > 0 %}
+                                                    (раз в {% if reason.cooldown_days == 365 %}год{% elif reason.cooldown_days >= 30 %}месяц{% elif reason.cooldown_days >= 7 %}неделю{% else %}{{ reason.cooldown_days }} дн.{% endif %})
+                                                    {% endif %}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="comment" class="form-label">Комментарий (необязательно)</label>
+                                            <textarea class="form-control" id="comment" name="comment" rows="2"></textarea>
+                                        </div>
+
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-plus-circle me-2"></i>Начислить
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <!-- История начислений -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-history me-2"></i>История начислений
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if awards %}
+                                    <div class="list-group">
+                                        {% for award in awards %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1 {% if award.reason.is_special %}text-primary{% endif %}">
+                                                        {{ award.reason.name }}
+                                                    </h6>
+                                                    <p class="mb-1">
+                                                        <span class="text-success">+{{ award.amount }} AC</span>
+                                                        {% if award.comment %}
+                                                        <br><small class="text-muted">{{ award.comment }}</small>
+                                                        {% endif %}
+                                                    </p>
+                                                    <small class="text-muted">
+                                                        {{ award.created_at|date:"d.m.Y H:i" }}
+                                                        от {{ award.teacher.get_full_name|default:award.teacher.username }}
+                                                    </small>
+                                                </div>
+                                                {% if request.user.is_superuser or award.teacher == request.user %}
+                                                <form method="post" class="ms-2" onsubmit="return confirm('Вы уверены, что хотите удалить это начисление?');">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="delete_award">
+                                                    <input type="hidden" name="award_id" value="{{ award.id }}">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted text-center mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Начислений пока нет
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reasonSelect = document.getElementById('reason');
+    
+    reasonSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const cooldown = selectedOption.dataset.cooldown;
+        const coins = selectedOption.dataset.coins;
+        
+        // Можно добавить дополнительную логику, например, показ предупреждения
+        // если награда уже выдавалась недавно
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+# Настройки базы данных
+DB_NAME=astrocoins
+DB_USER=astrocoins
+DB_PASSWORD=astrocoins_password_2024
+DB_HOST=localhost
+DB_PORT=5432
+
+# Настройки email
+EMAIL_PASSWORD=3164579881245$Ss
+
+# Настройки Django
+SECRET_KEY=we&bhe(_yq_!4%%^k9nm74mzpcmny9yp46j!q9c8ikbca7yn)1
+DEBUG=False
+
+# Настройки Redis
+REDIS_URL=redis://localhost:6379/1 

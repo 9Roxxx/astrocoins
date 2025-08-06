@@ -1,0 +1,234 @@
+/* Дополнительные анимации и эффекты */
+
+/* Градиентный фон для специальных элементов */
+.gradient-bg {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+/* Эффект свечения для кнопок */
+.btn-glow {
+    position: relative;
+}
+
+.btn-glow::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-glow:hover::before {
+    opacity: 1;
+}
+
+/* Эффект наведения для карточек */
+.card {
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(106, 61, 159, 0.05) 50%,
+        transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.card:hover::after {
+    transform: translateX(100%);
+}
+
+/* Анимация для иконок */
+.icon-spin {
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Эффект пульсации для уведомлений */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Эффект волны для кнопок */
+.btn-wave {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-wave::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-wave:active::after {
+    width: 300%;
+    height: 300%;
+}
+
+/* Эффект подсветки для форм */
+.form-glow:focus {
+    box-shadow: 0 0 15px rgba(106, 61, 159, 0.3);
+}
+
+/* Анимация загрузки */
+.loading-dots::after {
+    content: '';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60% { content: '...'; }
+    80%, 100% { content: ''; }
+}
+
+/* Эффект для списков */
+.list-hover {
+    transition: all 0.3s ease;
+}
+
+.list-hover:hover {
+    background-color: rgba(106, 61, 159, 0.05);
+    padding-left: 1.5rem;
+}
+
+/* Градиентный текст */
+.gradient-text {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradient 5s ease infinite;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Эффект для значков */
+.badge-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 5px rgba(106, 61, 159, 0.2),
+                    0 0 10px rgba(106, 61, 159, 0.2),
+                    0 0 15px rgba(106, 61, 159, 0.2);
+    }
+    to {
+        box-shadow: 0 0 10px rgba(106, 61, 159, 0.3),
+                    0 0 20px rgba(106, 61, 159, 0.3),
+                    0 0 30px rgba(106, 61, 159, 0.3);
+    }
+}
+
+/* Эффект для модальных окон */
+.modal-scale {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.modal-scale.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Эффект для навигации */
+.nav-item {
+    position: relative;
+}
+
+.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--secondary-color);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-item:hover::after {
+    width: 100%;
+}
+
+/* Эффект для астрокоинов */
+.coin-flip {
+    perspective: 1000px;
+}
+
+.coin-flip:hover {
+    animation: flip 1s ease;
+}
+
+@keyframes flip {
+    0% { transform: rotateY(0); }
+    100% { transform: rotateY(360deg); }
+}
+
+/* Эффект для заголовков */
+.title-underline {
+    position: relative;
+    display: inline-block;
+}
+
+.title-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: right;
+}
+
+.title-underline:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}

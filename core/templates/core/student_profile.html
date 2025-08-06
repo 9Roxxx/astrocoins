@@ -1,0 +1,177 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}Профиль {{ student.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>Профиль ученика
+                    </h5>
+                    <div class="btn-group">
+                        <a href="{% url 'manage_coins' student.id %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-coins me-2"></i>Управление астрокоинами
+                        </a>
+                        <a href="{% url 'profile_edit_user' student.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-2"></i>Редактировать профиль
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Основная информация</h6>
+                            <p class="mb-1">{{ student.get_full_name|default:student.username }}</p>
+                            <p class="mb-1"><small class="text-muted">Email: {{ student.email }}</small></p>
+                            <p class="mb-1"><small class="text-muted">Группа: {{ student.group.name }}</small></p>
+                            <p><small class="text-muted">Баланс: {{ student.profile.astrocoins }} AC</small></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Статистика</h6>
+                            <p class="mb-1">
+                                <small class="text-muted">
+                                    Всего начислено: {{ awards.count }} раз
+                                </small>
+                            </p>
+                            <p class="mb-1">
+                                <small class="text-muted">
+                                    Покупок в магазине: {{ purchases.count }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#awards">
+                                <i class="fas fa-award me-2"></i>Начисления
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#purchases">
+                                <i class="fas fa-shopping-cart me-2"></i>Покупки
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#transactions">
+                                <i class="fas fa-exchange-alt me-2"></i>Все транзакции
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- Начисления -->
+                        <div class="tab-pane fade show active" id="awards">
+                            <div class="list-group">
+                                {% for award in awards %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ award.reason.name }}</h6>
+                                            <p class="mb-1">
+                                                <span class="text-success">+{{ award.amount }} AC</span>
+                                                {% if award.comment %}
+                                                <br>
+                                                <small class="text-muted">{{ award.comment }}</small>
+                                                {% endif %}
+                                            </p>
+                                            <small class="text-muted">
+                                                От: {{ award.teacher.get_full_name|default:award.teacher.username }}
+                                                | {{ award.created_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-award fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Нет начислений</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Покупки -->
+                        <div class="tab-pane fade" id="purchases">
+                            <div class="list-group">
+                                {% for purchase in purchases %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ purchase.product.name }}</h6>
+                                            <p class="mb-1">
+                                                <span class="text-danger">-{{ purchase.total_price }} AC</span>
+                                            </p>
+                                            <small class="text-muted">
+                                                {{ purchase.created_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Нет покупок</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Все транзакции -->
+                        <div class="tab-pane fade" id="transactions">
+                            <div class="list-group">
+                                {% for transaction in transactions %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if transaction.transaction_type == 'EARN' %}
+                                                    <span class="text-success">
+                                                        <i class="fas fa-plus-circle me-1"></i>
+                                                        +{{ transaction.amount }} AC
+                                                    </span>
+                                                {% elif transaction.transaction_type == 'SPEND' %}
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-minus-circle me-1"></i>
+                                                        -{{ transaction.amount }} AC
+                                                    </span>
+                                                {% else %}
+                                                    {% if transaction.sender == student %}
+                                                        <span class="text-danger">
+                                                            <i class="fas fa-arrow-right me-1"></i>
+                                                            -{{ transaction.amount }} AC
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-success">
+                                                            <i class="fas fa-arrow-left me-1"></i>
+                                                            +{{ transaction.amount }} AC
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </h6>
+                                            <p class="mb-1">{{ transaction.description }}</p>
+                                            <small class="text-muted">
+                                                {{ transaction.created_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Нет транзакций</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
