@@ -5,7 +5,7 @@ from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import Profile, Transaction, Product, Purchase, Group, AwardReason, CoinAward, ProductCategory
-from decimal import Decimal
+# from decimal import Decimal - больше не нужен, используем int
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth import get_user_model
 import random
@@ -211,7 +211,7 @@ from django.template.loader import render_to_string
 def transfer_coins(request):
     if request.method == 'POST':
         receiver_username = request.POST.get('receiver')
-        amount = Decimal(request.POST.get('amount', 0))
+        amount = int(request.POST.get('amount', 0))
         
         try:
             if amount <= 0:
@@ -386,7 +386,7 @@ def groups(request):
             
             elif action == 'award_coins':
                 student_id = request.POST.get('student_id')
-                amount = Decimal(request.POST.get('amount', 0))
+                amount = int(request.POST.get('amount', 0))
                 reason = request.POST.get('reason', '')
                 
                 try:
