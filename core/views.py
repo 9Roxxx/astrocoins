@@ -618,6 +618,12 @@ def user_management(request):
                     role=role
                 )
                 
+                # Если создается администратор, устанавливаем is_superuser
+                if role == 'admin':
+                    user.is_superuser = True
+                    user.is_staff = True
+                    user.save()
+                
                 # Если создается ученик, добавляем дополнительные поля
                 if role == 'student':
                     birth_date = request.POST.get('birth_date')
@@ -655,6 +661,14 @@ def user_management(request):
                 user.username = username
                 user.email = email
                 user.role = role
+                
+                # Обновляем права администратора
+                if role == 'admin':
+                    user.is_superuser = True
+                    user.is_staff = True
+                else:
+                    user.is_superuser = False
+                    user.is_staff = False
                 
                 if role == 'student':
                     birth_date = request.POST.get('birth_date')
@@ -701,7 +715,14 @@ def user_management(request):
                         user.group = group
                     else:
                         user.group = None
+                elif role == 'admin':
+                    # Администраторы не имеют полей ученика
+                    user.birth_date = None
+                    user.parent_full_name = ''
+                    user.parent_phone = ''
+                    user.group = None
                 else:
+                    # Преподаватели не имеют полей ученика
                     user.birth_date = None
                     user.parent_full_name = ''
                     user.parent_phone = ''
@@ -776,8 +797,9 @@ def user_management(request):
                 messages.error(request, f'Ошибка при удалении группы: {str(e)}')
     
     context = {
-        'teachers': User.objects.filter(role='teacher'),
-        'students': User.objects.filter(role='student'),
+        'admins': User.objects.filter(role='admin').order_by('username'),
+        'teachers': User.objects.filter(role='teacher').order_by('username'),
+        'students': User.objects.filter(role='student').order_by('username'),
         'groups': Group.objects.all().select_related('teacher')
     }
     return render(request, 'core/user_management.html', context)

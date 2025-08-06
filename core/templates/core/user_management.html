@@ -35,7 +35,10 @@
 
                             <ul class="nav nav-tabs mb-3" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" data-bs-toggle="tab" href="#teachers">Преподаватели</a>
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#admins">Администраторы</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#teachers">Преподаватели</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" data-bs-toggle="tab" href="#students">Ученики</a>
@@ -43,8 +46,53 @@
                             </ul>
 
                             <div class="tab-content">
+                                <!-- Администраторы -->
+                                <div class="tab-pane fade show active" id="admins">
+                                    <div class="list-group">
+                                        {% for user in admins %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-crown text-warning me-2"></i>
+                                                        {{ user.get_full_name|default:user.username }}
+                                                    </h6>
+                                                    <small class="text-muted">{{ user.email }}</small>
+                                                    <div>
+                                                        <small class="text-muted">
+                                                            <span class="badge bg-danger">Администратор</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-outline-primary btn-sm" 
+                                                            onclick="showEditUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.role }}')"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#editUserModal">
+                                                        <i class="fas fa-edit me-1"></i>Редактировать
+                                                    </button>
+                                                    {% if user.id != request.user.id %}
+                                                    <button class="btn btn-outline-danger btn-sm" 
+                                                            onclick="showDeleteUser('{{ user.id }}', '{{ user.username }}')"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteUserModal">
+                                                        <i class="fas fa-trash me-1"></i>Удалить
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-user-shield fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">Нет администраторов</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
                                 <!-- Преподаватели -->
-                                <div class="tab-pane fade show active" id="teachers">
+                                <div class="tab-pane fade" id="teachers">
                                     <div class="list-group">
                                         {% for user in teachers %}
                                         <div class="list-group-item">
@@ -233,6 +281,7 @@
                                 <select class="form-select" id="role" name="role" required>
                                     <option value="student">Ученик</option>
                                     <option value="teacher">Преподаватель</option>
+                                    <option value="admin">Администратор</option>
                                 </select>
                             </div>
                         </div>
@@ -341,6 +390,7 @@
                                 <select class="form-select" id="editRole" name="role" required>
                                     <option value="student">Ученик</option>
                                     <option value="teacher">Преподаватель</option>
+                                    <option value="admin">Администратор</option>
                                 </select>
                             </div>
                         </div>
