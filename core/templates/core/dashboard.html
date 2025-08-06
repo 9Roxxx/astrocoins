@@ -3,7 +3,8 @@
 {% block title %}Главная - Астрокоины{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="container-fluid">
+    <div class="row">
     <!-- Левая колонка: Баланс и Перевод -->
     <div class="col-lg-6 col-md-12 mb-4">
         <div class="card mb-4" id="balanceCard">
@@ -351,8 +352,29 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+</div>
 
 <style>
+/* Предотвращение горизонтальной прокрутки */
+body {
+    overflow-x: hidden;
+}
+
+.container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.col-lg-6, .col-md-12 {
+    padding-left: 7.5px;
+    padding-right: 7.5px;
+}
+
 /* Стилизованный скроллбар для WebKit браузеров */
 .transactions-container::-webkit-scrollbar {
     width: 6px;
