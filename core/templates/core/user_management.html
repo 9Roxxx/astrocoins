@@ -297,26 +297,30 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label for="parent_full_name" class="form-label">ФИО родителя</label>
+                                <label for="parent" class="form-label">Родитель</label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="fas fa-user-friends"></i>
                                     </span>
-                                    <input type="text" class="form-control" id="parent_full_name" name="parent_full_name">
+                                    <select class="form-select" id="parent" name="parent">
+                                        <option value="">Выберите родителя или создайте нового</option>
+                                        {% for parent in parents %}
+                                        <option value="{{ parent.id }}">{{ parent.full_name }} ({{ parent.phone }})</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="parent_phone" class="form-label">Телефон родителя</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-phone"></i>
-                                    </span>
-                                    <input type="tel" class="form-control" id="parent_phone" name="parent_phone" 
-                                           pattern="\+7\s?[\(]{0,1}9[0-9]{2}[\)]{0,1}\s?\d{3}[-]{0,1}\d{2}[-]{0,1}\d{2}"
-                                           placeholder="+7 (9XX) XXX-XX-XX">
-                                </div>
-                                <div class="form-text">Формат: +7 (9XX) XXX-XX-XX</div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Если нужного родителя нет в списке, создайте его сначала в разделе 
+                                <strong>Администрирование → Родители</strong>
+                            </div>
+                            
+                            <!-- Старые поля для совместимости (скрытые) -->
+                            <div style="display: none;">
+                                <input type="text" id="parent_full_name" name="parent_full_name">
+                                <input type="tel" id="parent_phone" name="parent_phone">
                             </div>
 
                             <div class="mb-3" id="groupSelect">

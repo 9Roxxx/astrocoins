@@ -657,21 +657,30 @@ def user_management(request):
                 # Если создается ученик, добавляем дополнительные поля
                 if role == 'student':
                     birth_date = request.POST.get('birth_date')
-                    parent_full_name = request.POST.get('parent_full_name')
-                    parent_phone = request.POST.get('parent_phone')
+                    parent_id = request.POST.get('parent')
                     
-                    if not all([birth_date, parent_full_name, parent_phone]):
+                    if not birth_date:
                         user.delete()
-                        messages.error(request, 'Для ученика необходимо заполнить все дополнительные поля')
+                        messages.error(request, 'Для ученика необходимо указать дату рождения')
                         return redirect('user_management')
                     
                     user.birth_date = birth_date
-                    user.parent_full_name = parent_full_name
-                    user.parent_phone = parent_phone
                     
+                    # Привязываем родителя, если выбран
+                    if parent_id:
+                        try:
+                            parent = Parent.objects.get(id=parent_id)
+                            user.parent = parent
+                        except Parent.DoesNotExist:
+                            messages.warning(request, 'Выбранный родитель не найден')
+                    
+                    # Привязываем к группе, если выбрана
                     if group_id:
-                        group = Group.objects.get(id=group_id)
-                        user.group = group
+                        try:
+                            group = Group.objects.get(id=group_id)
+                            user.group = group
+                        except Group.DoesNotExist:
+                            messages.warning(request, 'Выбранная группа не найдена')
                     
                     user.save()
                 
@@ -830,7 +839,8 @@ def user_management(request):
         'admins': User.objects.filter(role='admin').order_by('username'),
         'teachers': User.objects.filter(role='teacher').order_by('username'),
         'students': User.objects.filter(role='student').order_by('username'),
-        'groups': Group.objects.all().select_related('teacher')
+        'groups': Group.objects.all().select_related('teacher'),
+        'parents': Parent.objects.all().order_by('full_name')
     }
     return render(request, 'core/user_management.html', context)
 
