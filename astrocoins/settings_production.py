@@ -10,6 +10,9 @@ DEBUG = False
 # Разрешенные хосты
 ALLOWED_HOSTS = ['algoritmika25.store', 'www.algoritmika25.store', 'localhost', '127.0.0.1']
 
+# Настройки шаблонов наследуются из settings.py
+# (core/templates уже включён в основных настройках)
+
 # Настройки безопасности для продакшена
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
