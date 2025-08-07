@@ -174,7 +174,7 @@ class ProductCategory(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)  # blank=True позволит создать slug автоматически
+    slug = models.SlugField(unique=True, blank=True, max_length=255)  # Увеличено для длинных названий
     description = models.TextField()
     price = models.IntegerField()  # Изменено на целые числа
     image = models.ImageField(
