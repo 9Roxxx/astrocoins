@@ -1,3 +1,39 @@
+/* Навигация */
+.navbar-nav .nav-link {
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.dropdown-menu {
+    min-width: 200px;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Адаптивность навигации */
+@media (max-width: 1200px) {
+    .navbar-nav .nav-link {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.5rem !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .navbar-collapse {
+        background-color: rgba(106, 61, 159, 0.95);
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 1rem;
+    }
+}
+
 /* Дополнительные анимации и эффекты */
 
 /* Градиентный фон для специальных элементов */
