@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Коврик для мыши \"Hello World\"",
+    "price": 350,
+    "category": "Коврики для мыши",
+    "stock": 10,
+    "description": "Стильный коврик для мыши с надписью Hello World для программистов",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Roblox 400 Robux",
+    "price": 500,
+    "category": "Игровые валюты",
+    "stock": 100,
+    "description": "400 Robux для игры Roblox. Мгновенная доставка на аккаунт",
+    "is_digital": true,
+    "featured": true
+  },
+  {
+    "name": "Ручка \"Python Developer\"",
+    "price": 45,
+    "category": "Канцелярские принадлежности",
+    "stock": 30,
+    "description": "Ручка с надписью Python Developer для программистов",
+    "is_digital": false,
+    "featured": false
+  }
+]
