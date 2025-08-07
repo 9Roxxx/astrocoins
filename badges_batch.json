@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Алгоритмика \"Это жизнь\"",
+    "price": 100,
+    "category": "Значки и бейджи",
+    "stock": 14,
+    "description": "Значок с надписью \"Алгоритмика - это жизнь\".",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Чек IT \"Алгоритмика\"",
+    "price": 100,
+    "category": "Значки и бейджи",
+    "stock": 22,
+    "description": "Значок в IT-стиле с логотипом Алгоритмики.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Я люблю \"Алгоритмику\"",
+    "price": 100,
+    "category": "Значки и бейджи",
+    "stock": 23,
+    "description": "Значок для выражения любви к Алгоритмике.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Open Source be with you",
+    "price": 100,
+    "category": "Значки и бейджи",
+    "stock": 22,
+    "description": "Значок для любителей открытого исходного кода.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Бэйджи школьные Владивосток",
+    "price": 300,
+    "category": "Значки и бейджи",
+    "stock": 10,
+    "description": "Школьные бэйджи для учеников. Доступны во Владивостоке.",
+    "is_digital": false,
+    "featured": false
+  }
+]

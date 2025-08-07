@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Сертификат DODO PIZZA 1000",
+    "price": 1000,
+    "category": "Вкусняшки",
+    "stock": 20,
+    "description": "Подарочный сертификат DODO PIZZA номиналом 1000 рублей.",
+    "is_digital": true,
+    "featured": false
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "name": "USB-накопитель 16Gb белый",
+    "price": 600,
+    "category": "USB и аксессуары",
+    "stock": 2,
+    "description": "USB-накопитель объемом 16Gb в белом корпусе.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "USB-накопитель 16Gb зелёный",
+    "price": 600,
+    "category": "USB и аксессуары",
+    "stock": 4,
+    "description": "USB-накопитель объемом 16Gb в зелёном корпусе. В Благовещенске нет в наличии.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "USB-накопитель 16Gb оранжевый",
+    "price": 600,
+    "category": "USB и аксессуары",
+    "stock": 3,
+    "description": "USB-накопитель объемом 16Gb в оранжевом корпусе. В Благовещенске нет в наличии.",
+    "is_digital": false,
+    "featured": false
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Ремувка желтая \"Дети вам покажут\"",
+    "price": 150,
+    "category": "USB и аксессуары",
+    "stock": 7,
+    "description": "Желтая ремувка с надписью \"Дети вам покажут\". В Благовещенске нет в наличии.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Ремувка белая \"GO [кодить]\"",
+    "price": 150,
+    "category": "USB и аксессуары",
+    "stock": 8,
+    "description": "Белая ремувка с надписью \"GO [кодить]\". В Благовещенске нет в наличии.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Картхолдер кожаный «Алгоритмика»",
+    "price": 450,
+    "category": "USB и аксессуары",
+    "stock": 8,
+    "description": "Кожаный картхолдер с логотипом Алгоритмики.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "PowerBank Владивосток",
+    "price": 1200,
+    "category": "USB и аксессуары",
+    "stock": 2,
+    "description": "Портативный аккумулятор для зарядки устройств. Доступен во Владивостоке.",
+    "is_digital": false,
+    "featured": false
+  }
+]

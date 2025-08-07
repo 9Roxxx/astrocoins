@@ -1,0 +1,83 @@
+[
+  {
+    "name": "Сертификат OZON номинал 500",
+    "price": 500,
+    "category": "Подарочные сертификаты",
+    "stock": 15,
+    "description": "Подарочный сертификат OZON номиналом 500 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат OZON 1000",
+    "price": 1000,
+    "category": "Подарочные сертификаты",
+    "stock": 19,
+    "description": "Подарочный сертификат OZON номиналом 1000 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат DNS 500",
+    "price": 500,
+    "category": "Подарочные сертификаты",
+    "stock": 15,
+    "description": "Подарочный сертификат DNS номиналом 500 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат DNS 1000",
+    "price": 1000,
+    "category": "Подарочные сертификаты",
+    "stock": 19,
+    "description": "Подарочный сертификат DNS номиналом 1000 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат Л'этуаль 500",
+    "price": 500,
+    "category": "Подарочные сертификаты",
+    "stock": 17,
+    "description": "Подарочный сертификат Л'этуаль номиналом 500 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат Л'этуаль 1000",
+    "price": 1000,
+    "category": "Подарочные сертификаты",
+    "stock": 20,
+    "description": "Подарочный сертификат Л'этуаль номиналом 1000 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат Спортмастер 500",
+    "price": 500,
+    "category": "Подарочные сертификаты",
+    "stock": 19,
+    "description": "Подарочный сертификат Спортмастер номиналом 500 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат Спортмастер 1000",
+    "price": 1000,
+    "category": "Подарочные сертификаты",
+    "stock": 19,
+    "description": "Подарочный сертификат Спортмастер номиналом 1000 рублей.",
+    "is_digital": true,
+    "featured": false
+  },
+  {
+    "name": "Сертификат DODO PIZZA 1000 (подарочные)",
+    "price": 1000,
+    "category": "Подарочные сертификаты",
+    "stock": 15,
+    "description": "Подарочный сертификат DODO PIZZA номиналом 1000 рублей.",
+    "is_digital": true,
+    "featured": false
+  }
+]
