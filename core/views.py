@@ -174,32 +174,77 @@ def purchase_product(request, product_id):
     if request.method != 'POST':
         return redirect('shop')
     
+    # Проверяем, что пользователь не учитель (только ученики могут покупать)
+    if request.user.is_teacher() and not request.user.is_superuser:
+        messages.error(request, 'Преподаватели не могут совершать покупки в магазине!')
+        return redirect('shop')
+    
+    # Дополнительная валидация product_id
+    try:
+        product_id = int(product_id)
+        if product_id <= 0:
+            raise ValueError("Invalid product ID")
+    except (ValueError, TypeError):
+        messages.error(request, 'Некорректный ID товара!')
+        return redirect('shop')
+    
     product = get_object_or_404(Product, id=product_id, available=True)
+    
+    # Проверяем наличие товара на складе
+    if product.stock <= 0:
+        messages.error(request, 'Товар закончился на складе!')
+        return redirect('shop')
+    
     profile = Profile.objects.get(user=request.user)
+    
+    # Дополнительная валидация цены
+    if product.price <= 0:
+        messages.error(request, 'Некорректная цена товара!')
+        return redirect('shop')
     
     if profile.astrocoins < product.price:
         messages.error(request, 'Недостаточно AstroCoins для покупки!')
         return redirect('shop')
     
-    # Создаем транзакцию покупки
-    Purchase.objects.create(
-        user=request.user,
-        product=product,
-        total_price=product.price
-    )
-    
-    # Списываем AstroCoins
-    profile.astrocoins -= product.price
-    profile.save()
-    
-    # Записываем транзакцию
-    Transaction.objects.create(
-        sender=request.user,
-        receiver=request.user,  # В случае покупки отправитель и получатель совпадают
-        amount=product.price,
-        transaction_type='SPEND',
-        description=f'Покупка {product.name}'
-    )
+    # Используем транзакцию базы данных для атомарности
+    with transaction.atomic():
+        # Повторно проверяем наличие и блокируем товар
+        product = Product.objects.select_for_update().get(id=product_id, available=True)
+        
+        if product.stock <= 0:
+            messages.error(request, 'Товар закончился на складе!')
+            return redirect('shop')
+        
+        # Повторно проверяем баланс пользователя
+        profile = Profile.objects.select_for_update().get(user=request.user)
+        
+        if profile.astrocoins < product.price:
+            messages.error(request, 'Недостаточно AstroCoins для покупки!')
+            return redirect('shop')
+        
+        # Создаем транзакцию покупки
+        Purchase.objects.create(
+            user=request.user,
+            product=product,
+            total_price=product.price
+        )
+        
+        # Списываем AstroCoins
+        profile.astrocoins -= product.price
+        profile.save()
+        
+        # Уменьшаем количество товара на складе
+        product.stock -= 1
+        product.save()
+        
+        # Записываем транзакцию
+        Transaction.objects.create(
+            sender=request.user,
+            receiver=request.user,  # В случае покупки отправитель и получатель совпадают
+            amount=product.price,
+            transaction_type='SPEND',
+            description=f'Покупка {product.name}'
+        )
     
     messages.success(request, f'Вы успешно приобрели {product.name}!')
     return redirect('shop')
@@ -502,8 +547,31 @@ def manage_coins(request, student_id):
             reason_id = request.POST.get('reason')
             comment = request.POST.get('comment', '')
             
+            # Дополнительная валидация входных данных
+            try:
+                reason_id = int(reason_id)
+                if reason_id <= 0:
+                    raise ValueError("Invalid reason ID")
+            except (ValueError, TypeError):
+                messages.error(request, 'Некорректная причина начисления!')
+                return redirect('manage_coins', student_id=student_id)
+            
+            # Валидация комментария
+            if len(comment) > 500:
+                messages.error(request, 'Комментарий слишком длинный (максимум 500 символов)!')
+                return redirect('manage_coins', student_id=student_id)
+            
             try:
                 reason = AwardReason.objects.get(id=reason_id)
+                
+                # Проверяем разумность суммы начисления
+                if reason.coins <= 0:
+                    messages.error(request, 'Некорректная сумма для начисления!')
+                    return redirect('manage_coins', student_id=student_id)
+                
+                if reason.coins > 1000:  # Ограничение на максимальную сумму
+                    messages.error(request, 'Слишком большая сумма для одного начисления!')
+                    return redirect('manage_coins', student_id=student_id)
                 
                 # Проверяем ограничение по времени
                 if reason.cooldown_days > 0:
@@ -517,14 +585,27 @@ def manage_coins(request, student_id):
                         messages.error(request, f'Эту награду можно выдать только раз в {reason.cooldown_days} дней')
                         return redirect('manage_coins', student_id=student_id)
                 
-                award = CoinAward.objects.create(
+                # Проверяем лимит начислений в день (защита от спама)
+                today_awards = CoinAward.objects.filter(
                     student=student,
                     teacher=request.user,
-                    reason=reason,
-                    amount=reason.coins,
-                    comment=comment
-                )
-                messages.success(request, f'Начислено {reason.coins} AC')
+                    created_at__date=timezone.now().date()
+                ).count()
+                
+                if today_awards >= 10:  # Максимум 10 начислений в день от одного учителя
+                    messages.error(request, 'Превышен дневной лимит начислений для этого ученика!')
+                    return redirect('manage_coins', student_id=student_id)
+                
+                # Используем транзакцию базы данных для атомарности
+                with transaction.atomic():
+                    award = CoinAward.objects.create(
+                        student=student,
+                        teacher=request.user,
+                        reason=reason,
+                        amount=reason.coins,
+                        comment=comment
+                    )
+                    messages.success(request, f'Начислено {reason.coins} AC ученику {student.get_full_name() or student.username}')
                 
             except AwardReason.DoesNotExist:
                 messages.error(request, 'Причина не найдена')

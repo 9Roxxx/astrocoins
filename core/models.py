@@ -195,6 +195,21 @@ class Product(models.Model):
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
         ordering = ['-featured', '-created_at']
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.price < 0:
+            raise ValidationError('Цена не может быть отрицательной')
+        if self.price > 10000:
+            raise ValidationError('Цена слишком высокая (максимум 10000 AC)')
+        if self.stock < 0:
+            raise ValidationError('Количество не может быть отрицательным')
+        if len(self.name.strip()) == 0:
+            raise ValidationError('Название товара не может быть пустым')
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def get_availability_display(self):
         return "В наличии" if self.available else "Нет в наличии"

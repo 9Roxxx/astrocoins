@@ -19,6 +19,20 @@ SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+# Дополнительные заголовки безопасности
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Настройки сессий и cookies
+SESSION_COOKIE_AGE = 3600  # 1 час
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SAMESITE = 'Strict'
+
 # Настройки базы данных PostgreSQL
 DATABASES = {
     'default': {
@@ -37,7 +51,7 @@ EMAIL_HOST = 'smtp.beget.com'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'algoritmika25mails@algoritmika25.store'
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD', '3164579881245$Ss')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 DEFAULT_FROM_EMAIL = 'Астрокоины <algoritmika25mails@algoritmika25.store>'
 
 # Настройки логирования

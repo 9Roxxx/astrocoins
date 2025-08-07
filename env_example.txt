@@ -5,11 +5,11 @@ DB_PASSWORD=astrocoins_password_2024
 DB_HOST=localhost
 DB_PORT=5432
 
-# Настройки email
-EMAIL_PASSWORD=3164579881245$Ss
+# Настройки email (ОБЯЗАТЕЛЬНО ИЗМЕНИТЬ!)
+EMAIL_PASSWORD=your_email_password_here
 
-# Настройки Django
-SECRET_KEY=your_secret_key_here
+# Настройки Django (ОБЯЗАТЕЛЬНО ИЗМЕНИТЬ!)
+SECRET_KEY=your_super_secret_key_here_change_this_in_production
 DEBUG=False
 
 # Настройки Redis

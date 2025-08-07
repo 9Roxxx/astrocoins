@@ -5,7 +5,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'we&bhe(_yq_!4%%^k9nm74mzpcmny9yp46j!q9c8ikbca7yn)1'
+SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-only-for-development-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -23,15 +23,18 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 USE_X_FORWARDED_HOST = False
 USE_X_FORWARDED_PORT = False
-SECURE_BROWSER_XSS_FILTER = False
-SECURE_CONTENT_TYPE_NOSNIFF = False
-
-# Минимальные настройки безопасности
+# Минимальные настройки безопасности для разработки
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+# Настройки сессий для разработки
+SESSION_COOKIE_AGE = 7200  # 2 часа для удобства разработки
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Для удобства разработки
 
 # Application definition
 INSTALLED_APPS = [
