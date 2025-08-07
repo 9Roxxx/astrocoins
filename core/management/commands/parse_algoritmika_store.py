@@ -7,6 +7,10 @@ from core.models import Product, ProductCategory
 from django.utils.text import slugify
 import time
 import random
+import os
+from urllib.parse import urljoin, urlparse
+from django.core.files import File
+import tempfile
 
 
 class Command(BaseCommand):
@@ -69,9 +73,299 @@ class Command(BaseCommand):
     def parse_products(self):
         """Парсим товары с сайта"""
         products = []
+        base_url = "https://algoritmika25.ru/store"
         
-        # Товары, которые мы видим на сайте
-        product_data = [
+        self.stdout.write("Загружаем страницу магазина...")
+        
+        try:
+            # Получаем HTML страницы
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            response = requests.get(base_url, headers=headers, timeout=30)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Ищем все товары на странице
+            # Обновляем селекторы на основе реальной структуры сайта
+            product_containers = soup.find_all('div', class_='product-item') or soup.find_all('div', class_='item') or soup.find_all('article')
+            
+            if not product_containers:
+                # Пробуем альтернативные селекторы
+                product_containers = soup.find_all('div', attrs={'data-product': True}) or soup.select('[class*="product"]')
+            
+            self.stdout.write(f"Найдено {len(product_containers)} контейнеров товаров")
+            
+            if not product_containers:
+                # Если не можем найти автоматически, ищем по тексту
+                self.stdout.write("Поиск товаров по тексту...")
+                products = self.parse_by_text_patterns(soup)
+            else:
+                for i, container in enumerate(product_containers):
+                    try:
+                        self.stdout.write(f"Обрабатываем контейнер {i+1}/{len(product_containers)}")
+                        product_data = self.extract_product_data(container, base_url)
+                        if product_data:
+                            products.append(product_data)
+                            self.stdout.write(f"✅ Найден товар: {product_data['name']} - {product_data['price']} AC")
+                        else:
+                            self.stdout.write(f"❌ Контейнер {i+1} не содержит данных товара")
+                    except Exception as e:
+                        self.stdout.write(f"❌ Ошибка обработки контейнера {i+1}: {e}")
+                        continue
+            
+            # Если ничего не найдено через контейнеры, пробуем текстовый парсинг
+            if not products and product_containers:
+                self.stdout.write("Контейнеры найдены, но товары не извлечены. Пробуем текстовый парсинг...")
+                products = self.parse_by_text_patterns(soup)
+            
+        except requests.RequestException as e:
+            self.stdout.write(self.style.ERROR(f"Ошибка загрузки страницы: {e}"))
+            # Возвращаем базовые товары как fallback
+            products = self.get_fallback_products()
+        
+        return products
+    
+    def parse_by_text_patterns(self, soup):
+        """Парсим товары по текстовым паттернам"""
+        products = []
+        text_content = soup.get_text()
+        
+        self.stdout.write("Начинаем текстовый парсинг...")
+        
+        # Конкретные товары с правильными ценами из ваших данных
+        known_products = [
+            {'name': 'Коврик для мыши "Just code it"', 'price': 350, 'stock_pattern': r'Коврик для мыши "Just code it".*?В наличии:\s*(\d+)'},
+            {'name': 'Ручка "Алгоритмика" белая', 'price': 40, 'stock_pattern': r'Ручка "Алгоритмика" белая.*?В наличии:\s*(\d+)'},
+            {'name': 'Коврик для мыши "Cool kids do CODES"', 'price': 350, 'stock_pattern': r'Коврик для мыши "Cool kids do CODES".*?В наличии:\s*(\d+)'},
+            {'name': 'Коврик для мыши с горячими клавишами', 'price': 350, 'stock_pattern': r'Коврик для мыши с горячими клавишами.*?В наличии:\s*(\d+)'},
+            {'name': 'Коврик для мыши "Open source"', 'price': 350, 'stock_pattern': r'Коврик для мыши "Open source".*?В наличии:\s*(\d+)'},
+            {'name': 'Коврик для мыши "Готово на 99%"', 'price': 350, 'stock_pattern': r'Коврик для мыши "Готово на 99%".*?В наличии:\s*(\d+)'},
+            {'name': 'Карандаш "Алгоритмика" белый', 'price': 30, 'stock_pattern': r'Карандаш "Алгоритмика" белый.*?В наличии:\s*(\d+)'},
+            {'name': 'Эко-ручка "Алгоритмика"', 'price': 40, 'stock_pattern': r'Эко-ручка "Алгоритмика".*?В наличии:\s*(\d+)'},
+            {'name': 'Браслет "Алгоритмика" синий', 'price': 50, 'stock_pattern': r'Браслет "Алгоритмика" синий.*?В наличии:\s*(\d+)'},
+            {'name': 'Roblox 800 Robux', 'price': 1000, 'stock_pattern': r'Roblox 800 Robux.*?В наличии:\s*(\d+)'},
+            {'name': 'Steam Wallet 500₽', 'price': 600, 'stock_pattern': r'Steam Wallet 500₽.*?В наличии:\s*(\d+)'},
+            {'name': 'Standoff 2 Gold 1000', 'price': 800, 'stock_pattern': r'Standoff 2 Gold 1000.*?В наличии:\s*(\d+)'},
+            {'name': '80 робаксов с зачислением через 7 дней', 'price': 150, 'stock_pattern': r'80 робаксов с зачислением через 7 дней.*?В наличии:\s*(\d+)'},
+            {'name': 'Попсокет "Code Life"', 'price': 200, 'stock_pattern': r'Попсокет "Code Life".*?В наличии:\s*(\d+)'},
+            {'name': 'Попсокет "Open Source"', 'price': 100, 'stock_pattern': r'Попсокет "Open Source".*?В наличии:\s*(\d+)'},
+            {'name': 'Коврик гигант фиолетовый', 'price': 350, 'stock_pattern': r'Коврик гигант фиолетовый.*?В наличии:\s*(\d+)'},
+            {'name': 'Коврик гигант желтый', 'price': 350, 'stock_pattern': r'Коврик гигант желтый.*?В наличии:\s*(\d+)'},
+        ]
+        
+        # Также пробуем найти товары по структуре "название товара" + "цена" + "В наличии:"
+        lines = text_content.split('\n')
+        current_product = {}
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Ищем названия товаров
+            if any(keyword in line.lower() for keyword in ['коврик', 'ручка', 'попсокет', 'браслет', 'roblox', 'steam', 'standoff', 'карандаш']):
+                if 'в наличии' not in line.lower() and len(line) > 5 and len(line) < 100:
+                    current_product['name'] = line
+                    
+            # Ищем цены (числа без контекста "В наличии")
+            elif re.match(r'^\d+$', line) and 'в наличии' not in lines[max(0, i-1)].lower():
+                if 'name' in current_product:
+                    current_product['price'] = int(line)
+                    
+            # Ищем количество в наличии
+            elif 'в наличии:' in line.lower():
+                match = re.search(r'в наличии:\s*(\d+)', line.lower())
+                if match and 'name' in current_product:
+                    current_product['stock'] = int(match.group(1))
+                    
+                    # Добавляем товар, если у нас есть название и цена
+                    if 'name' in current_product and 'price' in current_product:
+                        category = self.determine_category(current_product['name'])
+                        products.append({
+                            'name': current_product['name'],
+                            'price': current_product['price'],
+                            'stock': current_product.get('stock', 10),
+                            'category': category,
+                            'description': f"Товар {current_product['name']} из магазина Алгоритмики",
+                            'is_digital': any(word in current_product['name'].lower() for word in ['roblox', 'steam', 'standoff', 'робакс']),
+                            'featured': current_product['price'] > 500 or 'топ' in current_product['name'].lower() or '🔥' in current_product['name'],
+                            'image_url': None
+                        })
+                        self.stdout.write(f"📦 Найден товар: {current_product['name']} - {current_product['price']} AC")
+                        
+                    current_product = {}
+        
+        # Ищем конкретные товары по названию
+        for product_info in known_products:
+            name = product_info['name']
+            price = product_info['price']
+            
+            # Проверяем, есть ли этот товар на странице
+            if name in text_content:
+                # Проверяем, что товар еще не добавлен
+                if not any(p['name'] == name for p in products):
+                    # Ищем количество в наличии для этого товара
+                    stock_match = re.search(product_info['stock_pattern'], text_content, re.IGNORECASE | re.DOTALL)
+                    stock = int(stock_match.group(1)) if stock_match else 10
+                    
+                    category = self.determine_category(name)
+                    products.append({
+                        'name': name,
+                        'price': price,
+                        'stock': stock,
+                        'category': category,
+                        'description': f'Товар {name} из магазина Алгоритмики',
+                        'is_digital': any(word in name.lower() for word in ['roblox', 'steam', 'standoff', 'робакс']),
+                        'featured': price > 500 or 'топ' in name.lower() or '🔥' in name.lower(),
+                        'image_url': None
+                    })
+                    self.stdout.write(f"🔍 Найден товар: {name} - {price} AC (в наличии: {stock})")
+        
+        self.stdout.write(f"Текстовый парсинг завершен. Найдено товаров: {len(products)}")
+        return products
+    
+    def extract_product_data(self, container, base_url):
+        """Извлекаем данные товара из контейнера"""
+        try:
+            # Ищем название товара
+            name_elem = (
+                container.find('h3') or 
+                container.find('h4') or 
+                container.find('h5') or
+                container.find(class_=re.compile('title|name', re.I)) or
+                container.find('a')
+            )
+            
+            if not name_elem:
+                return None
+                
+            name = name_elem.get_text().strip()
+            
+            # Ищем цену
+            price_elem = (
+                container.find(class_=re.compile('price|cost', re.I)) or
+                container.find(text=re.compile(r'\d+\s*AC'))
+            )
+            
+            if price_elem:
+                if hasattr(price_elem, 'get_text'):
+                    price_text = price_elem.get_text()
+                else:
+                    price_text = str(price_elem)
+                    
+                price_match = re.search(r'(\d+)', price_text)
+                price = int(price_match.group(1)) if price_match else 100
+            else:
+                price = 100
+            
+            # Ищем количество в наличии
+            stock_elem = container.find(text=re.compile(r'В наличии:\s*(\d+)', re.I))
+            if stock_elem:
+                stock_match = re.search(r'В наличии:\s*(\d+)', stock_elem)
+                stock = int(stock_match.group(1)) if stock_match else 10
+            else:
+                stock = 10
+            
+            # Ищем изображение
+            img_elem = container.find('img')
+            image_url = None
+            if img_elem and img_elem.get('src'):
+                image_url = urljoin(base_url, img_elem['src'])
+            
+            # Определяем категорию
+            category = self.determine_category(name)
+            
+            return {
+                'name': name,
+                'price': price,
+                'stock': stock,
+                'category': category,
+                'description': f'Товар {name} из магазина Алгоритмики',
+                'is_digital': any(word in name.lower() for word in ['roblox', 'steam', 'standoff', 'робакс']),
+                'featured': price > 500 or 'топ' in name.lower() or '🔥' in name,
+                'image_url': image_url
+            }
+            
+        except Exception as e:
+            self.stdout.write(f"Ошибка извлечения данных товара: {e}")
+            return None
+    
+    def determine_category(self, name):
+        """Определяем категорию товара по названию"""
+        name_lower = name.lower()
+        
+        if any(word in name_lower for word in ['коврик']):
+            return 'Коврики для мыши'
+        elif any(word in name_lower for word in ['ручка', 'карандаш']):
+            return 'Канцелярские принадлежности'
+        elif any(word in name_lower for word in ['браслет']):
+            return 'Браслеты'
+        elif any(word in name_lower for word in ['попсокет']):
+            return 'Попсокеты'
+        elif any(word in name_lower for word in ['бутылка', 'кружка', 'стакан']):
+            return 'Бутылки и стаканы'
+        elif any(word in name_lower for word in ['рюкзак', 'сумка']):
+            return 'Рюкзаки и сумки'
+        elif any(word in name_lower for word in ['кепка', 'шапка']):
+            return 'Головные уборы'
+        elif any(word in name_lower for word in ['стикер', 'наклейка', 'переводка']):
+            return 'Наклейки и переводки'
+        elif any(word in name_lower for word in ['конфеты', 'шоколад', 'вкусняш']):
+            return 'Вкусняшки'
+        elif any(word in name_lower for word in ['часы']):
+            return 'Часы'
+        elif any(word in name_lower for word in ['игра', 'пазл']):
+            return 'Игры'
+        elif any(word in name_lower for word in ['футболка', 'худи', 'одежда']):
+            return 'Одежда'
+        elif any(word in name_lower for word in ['сертификат']):
+            return 'Подарочные сертификаты'
+        elif any(word in name_lower for word in ['usb', 'флешка']):
+            return 'USB и аксессуары'
+        elif any(word in name_lower for word in ['roblox', 'steam', 'standoff', 'робакс']):
+            return 'Игровые валюты'
+        elif any(word in name_lower for word in ['значок', 'бейдж']):
+            return 'Значки и бейджи'
+        else:
+            return 'Попсокеты'  # Категория по умолчанию
+    
+    def download_image(self, image_url, product_name):
+        """Скачиваем изображение товара"""
+        if not image_url:
+            return None
+            
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            response = requests.get(image_url, headers=headers, timeout=30)
+            response.raise_for_status()
+            
+            # Получаем расширение файла
+            parsed_url = urlparse(image_url)
+            file_extension = os.path.splitext(parsed_url.path)[1] or '.jpg'
+            
+            # Создаем имя файла
+            safe_name = re.sub(r'[^\w\s-]', '', product_name).strip()
+            safe_name = re.sub(r'[-\s]+', '-', safe_name)
+            filename = f"{safe_name}{file_extension}"
+            
+            # Сохраняем во временный файл
+            with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+                tmp_file.write(response.content)
+                tmp_file.flush()
+                
+                return tmp_file.name, filename
+                
+        except Exception as e:
+            self.stdout.write(f"Ошибка скачивания изображения {image_url}: {e}")
+            return None
+    
+    def get_fallback_products(self):
+        """Возвращаем базовые товары если парсинг не удался"""
+        return [
             {
                 'name': 'Коврик для мыши "Just code it"',
                 'price': 350,
@@ -434,6 +728,25 @@ class Command(BaseCommand):
                         'available': True
                     }
                 )
+                
+                # Обрабатываем изображение
+                if product_data.get('image_url') and (created or not product.image):
+                    self.stdout.write(f"Скачиваем изображение для {product.name}...")
+                    image_result = self.download_image(product_data['image_url'], product.name)
+                    
+                    if image_result:
+                        temp_file_path, filename = image_result
+                        try:
+                            with open(temp_file_path, 'rb') as f:
+                                product.image.save(filename, File(f), save=True)
+                            self.stdout.write(f"✅ Изображение сохранено: {filename}")
+                            
+                            # Удаляем временный файл
+                            os.unlink(temp_file_path)
+                        except Exception as e:
+                            self.stdout.write(f"❌ Ошибка сохранения изображения: {e}")
+                            if os.path.exists(temp_file_path):
+                                os.unlink(temp_file_path)
                 
                 if created:
                     created_count += 1
