@@ -711,17 +711,25 @@ def user_management(request):
                 
                 if role == 'student':
                     birth_date = request.POST.get('birth_date')
-                    parent_full_name = request.POST.get('parent_full_name')
-                    parent_phone = request.POST.get('parent_phone')
+                    parent_id = request.POST.get('parent')
                     balance = request.POST.get('balance')
                     
-                    if not all([birth_date, parent_full_name, parent_phone]):
-                        messages.error(request, 'Для ученика необходимо заполнить все дополнительные поля')
+                    if not birth_date:
+                        messages.error(request, 'Для ученика необходимо указать дату рождения')
                         return redirect('user_management')
                     
                     user.birth_date = birth_date
-                    user.parent_full_name = parent_full_name
-                    user.parent_phone = parent_phone
+                    
+                    # Обновляем родителя
+                    if parent_id:
+                        try:
+                            parent = Parent.objects.get(id=parent_id)
+                            user.parent = parent
+                        except Parent.DoesNotExist:
+                            messages.warning(request, 'Выбранный родитель не найден')
+                            user.parent = None
+                    else:
+                        user.parent = None
                     
                     # Обновляем баланс, если указан
                     if balance is not None and balance != '':

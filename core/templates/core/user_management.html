@@ -152,7 +152,7 @@
                                                 </div>
                                                 <div class="btn-group">
                                                     <button class="btn btn-outline-primary btn-sm"
-                                                            onclick="showEditUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.role }}', '{% if user.group %}{{ user.group.id }}{% endif %}', '{% if user.birth_date %}{{ user.birth_date|date:'Y-m-d' }}{% endif %}', '{{ user.parent_full_name|default:'' }}', '{{ user.parent_phone|default:'' }}', '{{ user.profile.astrocoins }}')"
+                                                            onclick="showEditUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.role }}', '{% if user.group %}{{ user.group.id }}{% endif %}', '{% if user.birth_date %}{{ user.birth_date|date:'Y-m-d' }}{% endif %}', '{% with parent_info=user.get_parent_info %}{{ parent_info.full_name|default:'' }}', '{{ parent_info.phone|default:'' }}', '{% if user.parent %}{{ user.parent.id }}{% endif %}'{% endwith %}, '{{ user.profile.astrocoins }}')"
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#editUserModal">
                                                         <i class="fas fa-edit me-1"></i>Редактировать
@@ -410,26 +410,24 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label for="editParentFullName" class="form-label">ФИО родителя</label>
+                                <label for="editParent" class="form-label">Родитель</label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="fas fa-user-friends"></i>
                                     </span>
-                                    <input type="text" class="form-control" id="editParentFullName" name="parent_full_name">
+                                    <select class="form-select" id="editParent" name="parent">
+                                        <option value="">Не выбран</option>
+                                        {% for parent in parents %}
+                                        <option value="{{ parent.id }}">{{ parent.full_name }} ({{ parent.phone }})</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="editParentPhone" class="form-label">Телефон родителя</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-phone"></i>
-                                    </span>
-                                    <input type="tel" class="form-control" id="editParentPhone" name="parent_phone" 
-                                           pattern="\+7\s?[\(]{0,1}9[0-9]{2}[\)]{0,1}\s?\d{3}[-]{0,1}\d{2}[-]{0,1}\d{2}"
-                                           placeholder="+7 (9XX) XXX-XX-XX">
-                                </div>
-                                <div class="form-text">Формат: +7 (9XX) XXX-XX-XX</div>
+                            <!-- Скрытые поля для совместимости -->
+                            <div style="display: none;">
+                                <input type="text" id="editParentFullName" name="parent_full_name">
+                                <input type="tel" id="editParentPhone" name="parent_phone">
                             </div>
 
                             <div class="mb-3" id="editGroupSelect">
@@ -703,7 +701,7 @@ function showDeleteGroup(groupId, groupName) {
     document.getElementById('deleteGroupName').textContent = groupName;
 }
 
-function showEditUser(userId, username, email, role, groupId, birthDate, parentFullName, parentPhone, balance) {
+function showEditUser(userId, username, email, role, groupId, birthDate, parentFullName, parentPhone, parentId, balance) {
     document.getElementById('editUserId').value = userId;
     document.getElementById('editUsername').value = username;
     document.getElementById('editEmail').value = email;
@@ -717,6 +715,7 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
         editStudentFields.style.display = isStudent ? 'block' : 'none';
         if (!isStudent) {
             document.getElementById('editBirthDate').value = '';
+            document.getElementById('editParent').value = '';
             document.getElementById('editParentFullName').value = '';
             document.getElementById('editParentPhone').value = '';
             editGroup.value = '';
@@ -727,6 +726,8 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
     // Заполняем поля ученика, если они есть
     if (role === 'student') {
         document.getElementById('editBirthDate').value = birthDate || '';
+        document.getElementById('editParent').value = parentId || '';
+        // Заполняем скрытые поля для совместимости
         document.getElementById('editParentFullName').value = parentFullName || '';
         document.getElementById('editParentPhone').value = parentPhone || '';
         editGroup.value = groupId || '';
