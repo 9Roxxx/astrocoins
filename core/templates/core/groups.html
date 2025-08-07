@@ -1,68 +1,115 @@
 {% extends "core/base.html" %}
 {% load i18n %}
 
-{% block title %}Группы - AstroCoins{% endblock %}
+{% block title %}Мои группы - AstroCoins{% endblock %}
 
 {% block content %}
 <div class="container">
-    {% if is_teacher %}
+    {% if user.is_teacher %}
     <!-- Интерфейс преподавателя -->
     <div class="row">
         <div class="col-12 mb-4">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Мои группы</h5>
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Мои группы
+                    </h5>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">
-                        <i class="fas fa-plus"></i> Создать группу
+                        <i class="fas fa-plus me-2"></i>Создать группу
                     </button>
                 </div>
                 <div class="card-body">
-                    {% if teacher_groups %}
-                        {% for group in teacher_groups %}
-                            <div class="card mb-3">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">{{ group.name }}</h6>
-                                        <small class="text-muted">
-                                            <i class="fas fa-users me-1"></i>
-                                            Учеников: {{ group.students.count }}
-                                        </small>
+                    {% if groups %}
+                        <div class="row">
+                            {% for group in groups %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 {% if not group.is_active %}border-warning{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">
+                                                {% if group.is_active %}
+                                                <span class="badge bg-success me-2">🟢</span>
+                                                {% else %}
+                                                <span class="badge bg-warning me-2">⏸️</span>
+                                                {% endif %}
+                                                {{ group.name }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                <i class="fas fa-users me-1"></i>{{ group.students_count }} учеников
+                                            </small>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text">{{ group.description }}</p>
-                                    <h6>Ученики ({{ group.students.count }}):</h6>
-                                    <div class="list-group">
-                                        {% for student in group.students.all %}
-                                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">{{ student.get_full_name|default:student.username }}</h6>
-                                                    <small class="text-muted">Баланс: {{ student.profile.astrocoins }} AC</small>
-                                            <div class="mt-2">
-                                                <a href="{% url 'manage_coins' student.id %}" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-coins me-1"></i>Управление астрокоинами
-                                                </a>
-                                                <a href="{% url 'student_profile' student.id %}" class="btn btn-outline-primary btn-sm">
-                                                    <i class="fas fa-user me-1"></i>Профиль
-                                                </a>
+                                    <div class="card-body">
+                                        {% if group.description %}
+                                        <p class="card-text">{{ group.description }}</p>
+                                        {% endif %}
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <small class="text-muted">Курс:</small>
+                                                <br><strong>{{ group.course.name|default:"Не указан" }}</strong>
                                             </div>
-                                                </div>
-                                                <button class="btn btn-success btn-sm" 
-                                                        onclick="showAwardModal('{{ student.id }}', '{{ student.username }}')"
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#awardCoinsModal">
-                                                    Начислить AstroCoins
-                                                </button>
+                                            <div class="col-6">
+                                                <small class="text-muted">Школа:</small>
+                                                <br><strong>{{ group.school.name|default:"Не указана" }}</strong>
                                             </div>
-                                        {% empty %}
-                                            <p class="text-muted">В группе пока нет учеников</p>
-                                        {% endfor %}
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            {% if group.first_lesson_date %}
+                                            <div class="col-6">
+                                                <small class="text-muted">Первый урок:</small>
+                                                <br><strong>{{ group.first_lesson_date|date:"d.m.Y" }}</strong>
+                                            </div>
+                                            {% endif %}
+                                            {% if group.lesson_time %}
+                                            <div class="col-6">
+                                                <small class="text-muted">Время:</small>
+                                                <br><strong>{{ group.lesson_time|time:"H:i" }}</strong>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if group.classroom %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Кабинет:</small>
+                                            <strong>{{ group.classroom }}</strong>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if group.curator %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Куратор:</small>
+                                            <strong>{{ group.curator.get_full_name|default:group.curator.username }}</strong>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100" role="group">
+                                            <button class="btn btn-outline-primary btn-sm" 
+                                                    onclick="viewGroupStudents({{ group.id }})"
+                                                    data-bs-toggle="modal" data-bs-target="#studentsModal">
+                                                <i class="fas fa-users me-1"></i>Ученики
+                                            </button>
+                                            <button class="btn btn-outline-success btn-sm"
+                                                    onclick="showAwardGroupModal({{ group.id }}, '{{ group.name }}')"
+                                                    data-bs-toggle="modal" data-bs-target="#awardGroupModal">
+                                                <i class="fas fa-coins me-1"></i>Начислить
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
                     {% else %}
-                        <p class="text-muted">У вас пока нет групп</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">У вас пока нет групп</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                                <i class="fas fa-plus me-2"></i>Создать первую группу
+                            </button>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -71,7 +118,7 @@
 
     <!-- Модальное окно создания группы -->
     <div class="modal fade" id="createGroupModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Создание новой группы</h5>
@@ -81,87 +128,121 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="create_group">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="groupName" class="form-label">Название группы</label>
-                            <input type="text" class="form-control" id="groupName" name="name" required>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="groupName" class="form-label">Название группы <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="groupName" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="groupSchool" class="form-label">Школа <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="groupSchool" name="school" required onchange="loadCourses(this.value)">
+                                        <option value="">Выберите школу</option>
+                                        {% for school in schools %}
+                                        <option value="{{ school.id }}">{{ school.name }} ({{ school.city.name }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="groupCourse" class="form-label">Курс <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="groupCourse" name="course" required>
+                                        <option value="">Сначала выберите школу</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="groupCurator" class="form-label">Куратор</label>
+                                    <select class="form-select" id="groupCurator" name="curator">
+                                        <option value="">Не назначен</option>
+                                        {% for admin in group_form.curator.field.queryset %}
+                                        <option value="{{ admin.id }}">{{ admin.get_full_name|default:admin.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="groupFirstLesson" class="form-label">Дата первого урока</label>
+                                    <input type="date" class="form-control" id="groupFirstLesson" name="first_lesson_date">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="groupTime" class="form-label">Время занятий</label>
+                                    <input type="time" class="form-control" id="groupTime" name="lesson_time">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="groupClassroom" class="form-label">Кабинет</label>
+                                    <input type="text" class="form-control" id="groupClassroom" name="classroom" 
+                                           placeholder="Например: 201, Компьютерный класс">
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="groupActive" name="is_active" checked>
+                                    <label class="form-check-label" for="groupActive">
+                                        Активная группа
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="groupDescription" class="form-label">Описание</label>
-                            <textarea class="form-control" id="groupDescription" name="description" rows="3"></textarea>
+                            <textarea class="form-control" id="groupDescription" name="description" rows="3" 
+                                      placeholder="Дополнительная информация о группе"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary">Создать</button>
+                        <button type="submit" class="btn btn-primary">Создать группу</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно начисления AstroCoins -->
-    <div class="modal fade" id="awardCoinsModal" tabindex="-1">
+    <!-- Модальное окно просмотра учеников -->
+    <div class="modal fade" id="studentsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ученики группы</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="studentsContent">
+                        <!-- Будет заполнено через JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно начисления группе -->
+    <div class="modal fade" id="awardGroupModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Начисление AstroCoins</h5>
+                    <h5 class="modal-title">Начислить астрокоины группе</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post" id="awardCoinsForm">
+                <form method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="award_coins">
-                    <input type="hidden" name="student_id" id="awardStudentId">
+                    <input type="hidden" name="action" value="award_group">
+                    <input type="hidden" id="awardGroupId" name="group_id">
                     <div class="modal-body">
-                        <p>Начисление AstroCoins ученику: <span id="awardStudentName" class="fw-bold"></span></p>
+                        <p>Группа: <strong id="awardGroupName"></strong></p>
                         <div class="mb-3">
-                            <label for="awardTemplate" class="form-label">Шаблон начисления</label>
-                            <select class="form-select" id="awardTemplate" onchange="updateAwardForm()">
-                                <option value="">Выберите причину начисления...</option>
-                                {% for reason in award_reasons %}
-                                    <option value="{{ reason.id }}" 
-                                            data-amount="{{ reason.coins }}" 
-                                            data-name="{{ reason.name }}"
-                                            data-cooldown="{{ reason.cooldown_days }}"
-                                            data-special="{{ reason.is_special|yesno:'true,false' }}">
-                                        {{ reason.name }} - {{ reason.coins }} AC
-                                        {% if reason.cooldown_days > 0 %}(раз в {{ reason.cooldown_days }} дн.){% endif %}
-                                        {% if reason.is_special %}⭐{% endif %}
-                                    </option>
-                                {% endfor %}
-                                <option value="custom">Своя причина...</option>
-                            </select>
-                            <div class="form-text">
-                                <i class="fas fa-star text-warning me-1"></i>Особые награды отмечены звездочкой
-                            </div>
-                        </div>
-                        <div class="mb-3" id="customAmountDiv" style="display: none;">
-                            <label for="awardAmount" class="form-label">Количество AstroCoins</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-coins"></i>
-                                </span>
-                                <input type="number" class="form-control" id="awardAmount" name="amount" min="1" step="1">
-                                <span class="input-group-text">AC</span>
-                            </div>
-                        </div>
-                        <div class="mb-3" id="customReasonDiv" style="display: none;">
                             <label for="awardReason" class="form-label">Причина начисления</label>
-                            <textarea class="form-control" id="awardReason" name="reason" rows="2" placeholder="Опишите за что начисляются AstroCoins..."></textarea>
+                            <select class="form-select" id="awardReason" name="reason_id" required>
+                                {% for reason in award_reasons %}
+                                <option value="{{ reason.id }}">{{ reason.name }} ({{ reason.coins }} AC)</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="mb-3" id="selectedTemplateInfo" style="display: none;">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Выбрано:</strong> <span id="selectedTemplateName"></span><br>
-                                <strong>Сумма:</strong> <span id="selectedTemplateAmount"></span> AC
-                                <div id="selectedTemplateCooldown" style="display: none;">
-                                    <strong>Ограничение:</strong> <span class="text-warning">Можно начислить раз в <span id="cooldownDays"></span> дней</span>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="awardComment" class="form-label">Комментарий</label>
+                            <textarea class="form-control" id="awardComment" name="comment" rows="3"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-success">Начислить</button>
+                        <button type="submit" class="btn btn-success">Начислить всем ученикам</button>
                     </div>
                 </form>
             </div>
@@ -169,7 +250,7 @@
     </div>
 
     {% else %}
-    <!-- Интерфейс ученика -->
+    <!-- Интерфейс студента -->
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -177,25 +258,69 @@
                     <h5 class="card-title mb-0">Моя группа</h5>
                 </div>
                 <div class="card-body">
-                    {% if student_group %}
-                        <h4>{{ student_group.name }}</h4>
-                        <p>{{ student_group.description }}</p>
-                        <div class="mt-4">
-                            <h6>Преподаватель:</h6>
-                            <p>{{ student_group.teacher.get_full_name|default:student_group.teacher.username }}</p>
-                        </div>
-                        <div class="mt-4">
-                            <h6>Одногруппники:</h6>
-                            <div class="list-group">
-                                {% for student in student_group.students.all %}
-                                    {% if student != request.user %}
-                                        <div class="list-group-item">
-                                            <h6 class="mb-0">{{ student.get_full_name|default:student.username }}</h6>
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
+                    {% if group %}
+                        <h6>{{ group.name }}</h6>
+                        {% if group.description %}
+                        <p>{{ group.description }}</p>
+                        {% endif %}
+                        
+                        <div class="row mb-3">
+                            {% if group.course %}
+                            <div class="col-md-6">
+                                <strong>Курс:</strong> {{ group.course.name }}
                             </div>
+                            {% endif %}
+                            {% if group.school %}
+                            <div class="col-md-6">
+                                <strong>Школа:</strong> {{ group.school.name }}
+                            </div>
+                            {% endif %}
                         </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Преподаватель:</strong> {{ group.teacher.get_full_name|default:group.teacher.username }}
+                            </div>
+                            {% if group.curator %}
+                            <div class="col-md-6">
+                                <strong>Куратор:</strong> {{ group.curator.get_full_name|default:group.curator.username }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if group.first_lesson_date or group.lesson_time or group.classroom %}
+                        <div class="row mb-3">
+                            {% if group.first_lesson_date %}
+                            <div class="col-md-4">
+                                <strong>Первый урок:</strong> {{ group.first_lesson_date|date:"d.m.Y" }}
+                            </div>
+                            {% endif %}
+                            {% if group.lesson_time %}
+                            <div class="col-md-4">
+                                <strong>Время:</strong> {{ group.lesson_time|time:"H:i" }}
+                            </div>
+                            {% endif %}
+                            {% if group.classroom %}
+                            <div class="col-md-4">
+                                <strong>Кабинет:</strong> {{ group.classroom }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if classmates %}
+                        <h6>Одногруппники:</h6>
+                        <div class="list-group">
+                            {% for classmate in classmates %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ classmate.get_full_name|default:classmate.username }}</h6>
+                                    <small class="text-muted">{{ classmate.profile.astrocoins }} AC</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     {% else %}
                         <p class="text-muted">Вы пока не состоите ни в одной группе</p>
                     {% endif %}
@@ -206,87 +331,48 @@
     {% endif %}
 </div>
 
-{% if is_teacher %}
 <script>
-function showAwardModal(studentId, studentName) {
-    document.getElementById('awardStudentId').value = studentId;
-    document.getElementById('awardStudentName').textContent = studentName;
+// Функция для загрузки курсов по школе
+function loadCourses(schoolId) {
+    const courseSelect = document.getElementById('groupCourse');
+    courseSelect.innerHTML = '<option value="">Загрузка...</option>';
     
-    // Сбрасываем форму
-    document.getElementById('awardTemplate').value = '';
-    document.getElementById('awardAmount').value = '';
-    document.getElementById('awardReason').value = '';
+    if (!schoolId) {
+        courseSelect.innerHTML = '<option value="">Сначала выберите школу</option>';
+        return;
+    }
     
-    // Скрываем все дополнительные поля
-    document.getElementById('customAmountDiv').style.display = 'none';
-    document.getElementById('customReasonDiv').style.display = 'none';
-    document.getElementById('selectedTemplateInfo').style.display = 'none';
+    fetch(`/api/school/${schoolId}/courses/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.courses) {
+                courseSelect.innerHTML = '<option value="">Выберите курс</option>';
+                data.courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    courseSelect.appendChild(option);
+                });
+            } else {
+                courseSelect.innerHTML = '<option value="">Нет доступных курсов</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки курсов:', error);
+            courseSelect.innerHTML = '<option value="">Ошибка загрузки</option>';
+        });
 }
 
-function updateAwardForm() {
-    const templateSelect = document.getElementById('awardTemplate');
-    const selectedOption = templateSelect.options[templateSelect.selectedIndex];
-    const customAmountDiv = document.getElementById('customAmountDiv');
-    const customReasonDiv = document.getElementById('customReasonDiv');
-    const selectedTemplateInfo = document.getElementById('selectedTemplateInfo');
-    const amountInput = document.getElementById('awardAmount');
-    const reasonInput = document.getElementById('awardReason');
-    
-    if (templateSelect.value === 'custom') {
-        // Показываем поля для ввода своей причины
-        customAmountDiv.style.display = 'block';
-        customReasonDiv.style.display = 'block';
-        selectedTemplateInfo.style.display = 'none';
-        
-        // Делаем поля обязательными
-        amountInput.required = true;
-        reasonInput.required = true;
-        
-        // Очищаем скрытые поля
-        amountInput.name = 'amount';
-        reasonInput.name = 'reason';
-        
-    } else if (templateSelect.value !== '') {
-        // Выбран шаблон
-        const amount = selectedOption.getAttribute('data-amount');
-        const name = selectedOption.getAttribute('data-name');
-        const cooldown = selectedOption.getAttribute('data-cooldown');
-        
-        // Показываем информацию о выбранном шаблоне
-        selectedTemplateInfo.style.display = 'block';
-        document.getElementById('selectedTemplateName').textContent = name;
-        document.getElementById('selectedTemplateAmount').textContent = amount;
-        
-        // Показываем информацию об ограничении, если есть
-        if (cooldown > 0) {
-            document.getElementById('selectedTemplateCooldown').style.display = 'block';
-            document.getElementById('cooldownDays').textContent = cooldown;
-        } else {
-            document.getElementById('selectedTemplateCooldown').style.display = 'none';
-        }
-        
-        // Скрываем поля для ввода
-        customAmountDiv.style.display = 'none';
-        customReasonDiv.style.display = 'none';
-        
-        // Убираем обязательность полей
-        amountInput.required = false;
-        reasonInput.required = false;
-        
-        // Устанавливаем значения для отправки
-        amountInput.value = amount;
-        reasonInput.value = name;
-        
-    } else {
-        // Ничего не выбрано
-        customAmountDiv.style.display = 'none';
-        customReasonDiv.style.display = 'none';
-        selectedTemplateInfo.style.display = 'none';
-        
-        amountInput.required = false;
-        reasonInput.required = false;
-    }
+// Функция для просмотра учеников группы
+function viewGroupStudents(groupId) {
+    // Здесь можно добавить AJAX для загрузки учеников
+    document.getElementById('studentsContent').innerHTML = '<p>Загрузка учеников...</p>';
+}
+
+// Функция для показа модального окна начисления группе
+function showAwardGroupModal(groupId, groupName) {
+    document.getElementById('awardGroupId').value = groupId;
+    document.getElementById('awardGroupName').textContent = groupName;
 }
 </script>
-{% endif %}
 {% endblock %}

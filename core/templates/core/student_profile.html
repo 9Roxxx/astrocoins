@@ -28,6 +28,9 @@
                             <p class="mb-1">{{ student.get_full_name|default:student.username }}</p>
                             <p class="mb-1"><small class="text-muted">Email: {{ student.email }}</small></p>
                             <p class="mb-1"><small class="text-muted">Группа: {{ student.group.name }}</small></p>
+                            {% if student.birth_date %}
+                            <p class="mb-1"><small class="text-muted">Дата рождения: {{ student.birth_date|date:"d.m.Y" }}</small></p>
+                            {% endif %}
                             <p><small class="text-muted">Баланс: {{ student.profile.astrocoins }} AC</small></p>
                         </div>
                         <div class="col-md-6">
@@ -44,6 +47,71 @@
                             </p>
                         </div>
                     </div>
+
+                    <!-- Информация о родителе -->
+                    {% with parent_info=student.get_parent_info %}
+                    {% if parent_info %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-user-friends me-2 text-primary"></i>Информация о родителе
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1">
+                                                <strong>ФИО:</strong> {{ parent_info.full_name }}
+                                            </p>
+                                            {% if parent_info.phone %}
+                                            <p class="mb-1">
+                                                <strong>Телефон:</strong> 
+                                                <a href="tel:{{ parent_info.phone }}" class="text-decoration-none">
+                                                    {{ parent_info.phone }}
+                                                </a>
+                                            </p>
+                                            {% endif %}
+                                            {% if parent_info.email %}
+                                            <p class="mb-1">
+                                                <strong>Email:</strong> 
+                                                <a href="mailto:{{ parent_info.email }}" class="text-decoration-none">
+                                                    {{ parent_info.email }}
+                                                </a>
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if parent_info.work_place %}
+                                            <p class="mb-1">
+                                                <strong>Место работы:</strong> {{ parent_info.work_place }}
+                                            </p>
+                                            {% endif %}
+                                            {% if parent_info.address %}
+                                            <p class="mb-1">
+                                                <strong>Адрес:</strong> {{ parent_info.address }}
+                                            </p>
+                                            {% endif %}
+                                            {% if parent_info.notes %}
+                                            <p class="mb-1">
+                                                <strong>Заметки:</strong> {{ parent_info.notes }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if student.parent %}
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Карточка родителя создана {{ student.parent.created_at|date:"d.m.Y" }}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
 
                     <ul class="nav nav-tabs mb-3" role="tablist">
                         <li class="nav-item">

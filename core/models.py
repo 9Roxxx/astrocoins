@@ -39,6 +39,32 @@ def create_cyrillic_slug(text):
     
     return slug
 
+class Parent(models.Model):
+    """
+    Модель родителя с полной информацией
+    """
+    full_name = models.CharField(max_length=255, verbose_name='ФИО родителя')
+    phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
+    email = models.EmailField(blank=True, verbose_name='Email')
+    address = models.TextField(blank=True, verbose_name='Адрес')
+    work_place = models.CharField(max_length=255, blank=True, verbose_name='Место работы')
+    notes = models.TextField(blank=True, verbose_name='Дополнительные заметки')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='Дата создания')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+
+    class Meta:
+        verbose_name = 'Родитель'
+        verbose_name_plural = 'Родители'
+        ordering = ['full_name']
+
+    def __str__(self):
+        return self.full_name
+
+    @property
+    def students_count(self):
+        """Количество детей у этого родителя"""
+        return self.students.count()
+
 class User(AbstractUser):
     """
     Пользовательская модель пользователя с дополнительными полями
@@ -54,14 +80,40 @@ class User(AbstractUser):
     
     # Дополнительные поля для учеников
     birth_date = models.DateField(null=True, blank=True, verbose_name='Дата рождения')
-    parent_full_name = models.CharField(max_length=255, blank=True, verbose_name='ФИО родителя')
-    parent_phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон родителя')
+    parent_full_name = models.CharField(max_length=255, blank=True, verbose_name='ФИО родителя (устаревшее)')
+    parent_phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон родителя (устаревшее)')
+    
+    # Новая связь с моделью Parent
+    parent = models.ForeignKey('Parent', on_delete=models.SET_NULL, null=True, blank=True, 
+                              related_name='students', verbose_name='Родитель')
 
     def is_teacher(self):
         return self.role == 'teacher' or self.role == 'admin'
     
     def is_student(self):
         return self.role == 'student'
+    
+    def get_parent_info(self):
+        """Получить информацию о родителе (новая модель или старые поля)"""
+        if self.parent:
+            return {
+                'full_name': self.parent.full_name,
+                'phone': self.parent.phone,
+                'email': self.parent.email,
+                'address': self.parent.address,
+                'work_place': self.parent.work_place,
+                'notes': self.parent.notes,
+            }
+        elif self.parent_full_name or self.parent_phone:
+            return {
+                'full_name': self.parent_full_name,
+                'phone': self.parent_phone,
+                'email': '',
+                'address': '',
+                'work_place': '',
+                'notes': '',
+            }
+        return None
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -183,17 +235,133 @@ class Purchase(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
 
-class Group(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teaching_groups')
-    created_at = models.DateTimeField(default=timezone.now)
+class City(models.Model):
+    """
+    Модель города
+    """
+    name = models.CharField(max_length=100, verbose_name='Название города')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Город'
+        verbose_name_plural = 'Города'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
 
+    @property
+    def schools_count(self):
+        """Количество школ в городе"""
+        return self.schools.count()
+
+
+class School(models.Model):
+    """
+    Модель школы/учреждения
+    """
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='schools', verbose_name='Город')
+    name = models.CharField(max_length=255, verbose_name='Название учреждения')
+    director = models.CharField(max_length=255, verbose_name='Директор')
+    representative = models.CharField(max_length=255, verbose_name='Представитель')
+    address = models.TextField(verbose_name='Адрес')
+    phone = models.CharField(max_length=20, verbose_name='Телефон')
+    email = models.EmailField(blank=True, verbose_name='Email')
+    website = models.URLField(blank=True, verbose_name='Сайт')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='Дата создания')
+
     class Meta:
-        ordering = ['-created_at']
+        verbose_name = 'Школа'
+        verbose_name_plural = 'Школы'
+        ordering = ['city__name', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.city.name})"
+
+    @property
+    def courses_count(self):
+        """Количество курсов в школе"""
+        return self.courses.count()
+
+    @property
+    def groups_count(self):
+        """Количество групп в школе"""
+        return self.groups.count()
+
+
+class Course(models.Model):
+    """
+    Модель курса
+    """
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='courses', verbose_name='Школа')
+    name = models.CharField(max_length=255, verbose_name='Название курса')
+    description = models.TextField(blank=True, verbose_name='Описание курса')
+    duration_hours = models.PositiveIntegerField(default=0, verbose_name='Продолжительность (часы)')
+    is_active = models.BooleanField(default=True, verbose_name='Активный курс')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Курс'
+        verbose_name_plural = 'Курсы'
+        ordering = ['school__name', 'name']
+
+    def __str__(self):
+        return f"{self.name} - {self.school.name}"
+
+    @property
+    def groups_count(self):
+        """Количество групп по этому курсу"""
+        return self.groups.count()
+
+
+class Group(models.Model):
+    """
+    Обновленная модель группы с расширенными полями
+    """
+    name = models.CharField(max_length=100, verbose_name='Название группы')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    
+    # Связи (временно nullable для миграции)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='groups', verbose_name='Курс', null=True, blank=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='groups', verbose_name='Школа', null=True, blank=True)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teaching_groups', 
+                               limit_choices_to={'role__in': ['teacher', 'admin']}, verbose_name='Преподаватель')
+    curator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                               related_name='curated_groups', limit_choices_to={'role': 'admin'}, 
+                               verbose_name='Куратор')
+    
+    # Расписание и место
+    first_lesson_date = models.DateField(null=True, blank=True, verbose_name='Дата первого урока')
+    classroom = models.CharField(max_length=50, blank=True, verbose_name='Кабинет')
+    lesson_time = models.TimeField(null=True, blank=True, verbose_name='Время занятий')
+    
+    # Статус
+    is_active = models.BooleanField(default=True, verbose_name='Активная группа')
+    
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='Дата создания')
+
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+        ordering = ['-is_active', '-created_at']
+
+    def __str__(self):
+        return f"{self.name} - {self.course.name} ({self.school.name})"
+
+    @property
+    def students_count(self):
+        """Количество учеников в группе"""
+        return self.students.count()
+
+    def clean(self):
+        """Валидация модели"""
+        from django.core.exceptions import ValidationError
+        
+        # Проверяем, что курс принадлежит выбранной школе
+        if self.course and self.school and self.course.school != self.school:
+            raise ValidationError({
+                'course': 'Выбранный курс не принадлежит указанной школе.'
+            })
 
 class AwardReason(models.Model):
     name = models.CharField(max_length=200)

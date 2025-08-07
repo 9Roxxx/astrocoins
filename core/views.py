@@ -4,10 +4,11 @@ from django.contrib import messages
 from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import Profile, Transaction, Product, Purchase, Group, AwardReason, CoinAward, ProductCategory
+from .models import Profile, Transaction, Product, Purchase, Group, AwardReason, CoinAward, ProductCategory, Parent, City, School, Course
 # from decimal import Decimal - больше не нужен, используем int
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth import get_user_model
+from .forms import ParentForm, StudentParentLinkForm, CreateParentWithStudentForm, CityForm, SchoolForm, CourseForm, GroupForm, QuickCourseForm
 import random
 
 User = get_user_model()
@@ -917,3 +918,560 @@ def get_category(request, category_id):
         return JsonResponse(data)
     except ProductCategory.DoesNotExist:
         return JsonResponse({'error': 'Категория не найдена'}, status=404)
+
+
+# ===============================
+# УПРАВЛЕНИЕ РОДИТЕЛЯМИ
+# ===============================
+
+@login_required
+def parent_management(request):
+    """
+    Страница управления родителями (только для администраторов)
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут управлять родителями")
+    
+    # Получаем всех родителей с количеством детей
+    parents = Parent.objects.all().order_by('full_name')
+    
+    # Обработка поиска
+    search_query = request.GET.get('search', '')
+    if search_query:
+        parents = parents.filter(
+            Q(full_name__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(work_place__icontains=search_query)
+        )
+    
+    # Пагинация
+    paginator = Paginator(parents, 20)  # 20 родителей на страницу
+    page_number = request.GET.get('page')
+    parents_page = paginator.get_page(page_number)
+    
+    # Получаем учеников без родителей для быстрого привязывания
+    students_without_parents = User.objects.filter(role='student', parent__isnull=True).order_by('first_name', 'last_name', 'username')
+    
+    context = {
+        'parents': parents_page,
+        'search_query': search_query,
+        'students_without_parents': students_without_parents,
+        'total_parents': Parent.objects.count(),
+        'students_with_parents': User.objects.filter(role='student', parent__isnull=False).count(),
+        'students_without_parents_count': students_without_parents.count(),
+    }
+    
+    return render(request, 'core/parent_management.html', context)
+
+
+@login_required
+def create_parent(request):
+    """
+    Создание нового родителя
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут создавать родителей")
+    
+    if request.method == 'POST':
+        form = CreateParentWithStudentForm(request.POST)
+        if form.is_valid():
+            try:
+                parent = form.save()
+                student = form.cleaned_data.get('student')
+                if student:
+                    messages.success(
+                        request, 
+                        f'Родитель "{parent.full_name}" успешно создан и привязан к ученику {student.get_full_name() or student.username}'
+                    )
+                else:
+                    messages.success(request, f'Родитель "{parent.full_name}" успешно создан')
+                return redirect('parent_management')
+            except Exception as e:
+                messages.error(request, f'Ошибка при создании родителя: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    
+    return redirect('parent_management')
+
+
+@login_required
+def edit_parent(request, parent_id):
+    """
+    Редактирование родителя
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут редактировать родителей")
+    
+    parent = get_object_or_404(Parent, id=parent_id)
+    
+    if request.method == 'POST':
+        form = ParentForm(request.POST, instance=parent)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, f'Данные родителя "{parent.full_name}" успешно обновлены')
+            except Exception as e:
+                messages.error(request, f'Ошибка при обновлении данных: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    
+    return redirect('parent_management')
+
+
+@login_required
+def delete_parent(request, parent_id):
+    """
+    Удаление родителя
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут удалять родителей")
+    
+    if request.method == 'POST':
+        parent = get_object_or_404(Parent, id=parent_id)
+        parent_name = parent.full_name
+        students_count = parent.students_count
+        
+        try:
+            parent.delete()
+            if students_count > 0:
+                messages.success(
+                    request, 
+                    f'Родитель "{parent_name}" удален. {students_count} ученик(ов) остались без привязки к родителю.'
+                )
+            else:
+                messages.success(request, f'Родитель "{parent_name}" успешно удален')
+        except Exception as e:
+            messages.error(request, f'Ошибка при удалении родителя: {str(e)}')
+    
+    return redirect('parent_management')
+
+
+@login_required
+def link_student_parent(request):
+    """
+    Привязка ученика к родителю
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут привязывать учеников к родителям")
+    
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        parent_id = request.POST.get('parent_id')
+        
+        try:
+            student = get_object_or_404(User, id=student_id, role='student')
+            parent = get_object_or_404(Parent, id=parent_id)
+            
+            old_parent = student.parent
+            student.parent = parent
+            student.save()
+            
+            if old_parent:
+                messages.success(
+                    request,
+                    f'Ученик {student.get_full_name() or student.username} перепривязан с "{old_parent.full_name}" на "{parent.full_name}"'
+                )
+            else:
+                messages.success(
+                    request,
+                    f'Ученик {student.get_full_name() or student.username} привязан к родителю "{parent.full_name}"'
+                )
+        except Exception as e:
+            messages.error(request, f'Ошибка при привязке: {str(e)}')
+    
+    return redirect('parent_management')
+
+
+@login_required
+def unlink_student_parent(request, student_id):
+    """
+    Отвязка ученика от родителя
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут отвязывать учеников от родителей")
+    
+    if request.method == 'POST':
+        student = get_object_or_404(User, id=student_id, role='student')
+        
+        try:
+            parent_name = student.parent.full_name if student.parent else None
+            student.parent = None
+            student.save()
+            
+            if parent_name:
+                messages.success(
+                    request,
+                    f'Ученик {student.get_full_name() or student.username} отвязан от родителя "{parent_name}"'
+                )
+            else:
+                messages.info(request, f'У ученика {student.get_full_name() or student.username} не было привязанного родителя')
+        except Exception as e:
+            messages.error(request, f'Ошибка при отвязке: {str(e)}')
+    
+    return redirect('parent_management')
+
+
+@login_required
+def get_parent_data(request, parent_id):
+    """
+    API для получения данных родителя (для модального окна редактирования)
+    """
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+    
+    try:
+        parent = Parent.objects.get(id=parent_id)
+        data = {
+            'id': parent.id,
+            'full_name': parent.full_name,
+            'phone': parent.phone,
+            'email': parent.email,
+            'address': parent.address,
+            'work_place': parent.work_place,
+            'notes': parent.notes,
+            'students': [
+                {
+                    'id': student.id,
+                    'name': student.get_full_name() or student.username,
+                    'username': student.username
+                }
+                for student in parent.students.all()
+            ]
+        }
+        return JsonResponse(data)
+    except Parent.DoesNotExist:
+        return JsonResponse({'error': 'Родитель не найден'}, status=404)
+
+
+# ===============================
+# УПРАВЛЕНИЕ ШКОЛЬНОЙ СИСТЕМОЙ
+# ===============================
+
+@login_required
+def city_management(request):
+    """
+    Страница управления городами (только для администраторов)
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут управлять городами")
+    
+    cities = City.objects.all().order_by('name')
+    
+    # Обработка поиска
+    search_query = request.GET.get('search', '')
+    if search_query:
+        cities = cities.filter(name__icontains=search_query)
+    
+    context = {
+        'cities': cities,
+        'search_query': search_query,
+        'total_cities': City.objects.count(),
+        'total_schools': School.objects.count(),
+    }
+    
+    return render(request, 'core/city_management.html', context)
+
+
+@login_required
+def create_city(request):
+    """
+    Создание нового города
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут создавать города")
+    
+    if request.method == 'POST':
+        form = CityForm(request.POST)
+        if form.is_valid():
+            try:
+                city = form.save()
+                messages.success(request, f'Город "{city.name}" успешно создан')
+                return redirect('city_management')
+            except Exception as e:
+                messages.error(request, f'Ошибка при создании города: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    
+    return redirect('city_management')
+
+
+@login_required
+def school_management(request):
+    """
+    Страница управления школами (только для администраторов)
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут управлять школами")
+    
+    schools = School.objects.all().select_related('city').order_by('city__name', 'name')
+    
+    # Обработка поиска
+    search_query = request.GET.get('search', '')
+    if search_query:
+        schools = schools.filter(
+            Q(name__icontains=search_query) |
+            Q(city__name__icontains=search_query) |
+            Q(director__icontains=search_query) |
+            Q(representative__icontains=search_query) |
+            Q(address__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+    
+    # Фильтр по городу
+    city_filter = request.GET.get('city')
+    if city_filter:
+        schools = schools.filter(city_id=city_filter)
+    
+    # Пагинация
+    paginator = Paginator(schools, 10)  # 10 школ на страницу
+    page_number = request.GET.get('page')
+    schools_page = paginator.get_page(page_number)
+    
+    context = {
+        'schools': schools_page,
+        'search_query': search_query,
+        'city_filter': city_filter,
+        'cities': City.objects.all().order_by('name'),
+        'total_schools': School.objects.count(),
+        'total_courses': Course.objects.count(),
+        'total_groups': Group.objects.count(),
+    }
+    
+    return render(request, 'core/school_management.html', context)
+
+
+@login_required
+def create_school(request):
+    """
+    Создание новой школы
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут создавать школы")
+    
+    if request.method == 'POST':
+        form = SchoolForm(request.POST)
+        if form.is_valid():
+            try:
+                school = form.save()
+                messages.success(request, f'Школа "{school.name}" успешно создана')
+                return redirect('school_management')
+            except Exception as e:
+                messages.error(request, f'Ошибка при создании школы: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    
+    return redirect('school_management')
+
+
+@login_required
+def school_detail(request, school_id):
+    """
+    Детальная страница школы с курсами
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут просматривать детали школ")
+    
+    school = get_object_or_404(School, id=school_id)
+    courses = school.courses.all().order_by('-is_active', 'name')
+    
+    # Обработка поиска курсов
+    search_query = request.GET.get('search', '')
+    if search_query:
+        courses = courses.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    context = {
+        'school': school,
+        'courses': courses,
+        'search_query': search_query,
+        'active_courses_count': school.courses.filter(is_active=True).count(),
+        'inactive_courses_count': school.courses.filter(is_active=False).count(),
+        'groups_count': school.groups.count(),
+    }
+    
+    return render(request, 'core/school_detail.html', context)
+
+
+@login_required
+def create_course(request, school_id):
+    """
+    Создание курса для школы
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут создавать курсы")
+    
+    school = get_object_or_404(School, id=school_id)
+    
+    if request.method == 'POST':
+        form = QuickCourseForm(request.POST)
+        if form.is_valid():
+            try:
+                course = form.save(school)
+                messages.success(request, f'Курс "{course.name}" успешно создан')
+                return redirect('school_detail', school_id=school.id)
+            except Exception as e:
+                messages.error(request, f'Ошибка при создании курса: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    
+    return redirect('school_detail', school_id=school.id)
+
+
+@login_required
+def edit_course(request, course_id):
+    """
+    Редактирование курса
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут редактировать курсы")
+    
+    course = get_object_or_404(Course, id=course_id)
+    
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, f'Курс "{course.name}" успешно обновлен')
+            except Exception as e:
+                messages.error(request, f'Ошибка при обновлении курса: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
+    
+    return redirect('school_detail', school_id=course.school.id)
+
+
+@login_required
+def delete_course(request, course_id):
+    """
+    Удаление курса
+    """
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Только администраторы могут удалять курсы")
+    
+    if request.method == 'POST':
+        course = get_object_or_404(Course, id=course_id)
+        school_id = course.school.id
+        course_name = course.name
+        groups_count = course.groups.count()
+        
+        try:
+            course.delete()
+            if groups_count > 0:
+                messages.success(
+                    request, 
+                    f'Курс "{course_name}" удален. {groups_count} группа(групп) также удалена.'
+                )
+            else:
+                messages.success(request, f'Курс "{course_name}" успешно удален')
+        except Exception as e:
+            messages.error(request, f'Ошибка при удалении курса: {str(e)}')
+        
+        return redirect('school_detail', school_id=school_id)
+    
+    return redirect('school_management')
+
+
+# Обновляем view для групп
+@login_required
+def groups(request):
+    """
+    Обновленная страница управления группами
+    """
+    context = {}
+    
+    if request.user.is_teacher():
+        # Для преподавателя показываем его группы и форму создания группы
+        groups = Group.objects.filter(teacher=request.user).select_related('course', 'school', 'curator')
+        
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'create_group':
+                form = GroupForm(request.POST)
+                if form.is_valid():
+                    try:
+                        group = form.save(commit=False)
+                        group.teacher = request.user  # Устанавливаем текущего пользователя как преподавателя
+                        group.save()
+                        messages.success(request, f'Группа "{group.name}" успешно создана')
+                    except Exception as e:
+                        messages.error(request, f'Ошибка при создании группы: {str(e)}')
+                else:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f'{form.fields[field].label}: {error}')
+            
+            elif action == 'award_coins':
+                # ... остальной код для начисления монет остается без изменений
+                pass
+        
+        context.update({
+            'groups': groups,
+            'group_form': GroupForm(),
+            'award_reasons': AwardReason.objects.all(),
+            'cities': City.objects.all().order_by('name'),
+            'schools': School.objects.all().order_by('city__name', 'name'),
+            'courses': Course.objects.filter(is_active=True).order_by('school__name', 'name'),
+        })
+    
+    else:
+        # Для студентов показываем их группу
+        if request.user.group:
+            context['group'] = request.user.group
+            context['classmates'] = request.user.group.students.exclude(id=request.user.id)
+    
+    return render(request, 'core/groups.html', context)
+
+
+@login_required
+def get_courses_by_school(request, school_id):
+    """
+    API для получения курсов по школе (для динамической загрузки в формах)
+    """
+    try:
+        school = School.objects.get(id=school_id)
+        courses = school.courses.filter(is_active=True).order_by('name')
+        data = {
+            'courses': [
+                {
+                    'id': course.id,
+                    'name': course.name,
+                    'description': course.description,
+                    'duration_hours': course.duration_hours
+                }
+                for course in courses
+            ]
+        }
+        return JsonResponse(data)
+    except School.DoesNotExist:
+        return JsonResponse({'error': 'Школа не найдена'}, status=404)

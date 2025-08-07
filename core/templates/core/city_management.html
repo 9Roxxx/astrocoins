@@ -1,0 +1,139 @@
+{% extends "core/base.html" %}
+
+{% block title %}Управление городами - AstroCoins{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-city me-2"></i>Управление городами
+                    </h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCityModal">
+                        <i class="fas fa-plus me-2"></i>Добавить город
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Статистика -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-city fa-2x mb-2"></i>
+                                    <h4>{{ total_cities }}</h4>
+                                    <small>Всего городов</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-school fa-2x mb-2"></i>
+                                    <h4>{{ total_schools }}</h4>
+                                    <small>Всего школ</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Поиск -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Поиск по названию города..."
+                                       value="{{ search_query }}">
+                                <button type="submit" class="btn btn-outline-primary ms-2">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                {% if search_query %}
+                                <a href="{% url 'city_management' %}" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Список городов -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Название города</th>
+                                    <th>Количество школ</th>
+                                    <th>Дата создания</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for city in cities %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ city.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ city.schools_count }} школ</span>
+                                    </td>
+                                    <td>
+                                        {{ city.created_at|date:"d.m.Y" }}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'school_management' %}?city={{ city.id }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-school me-1"></i>Школы ({{ city.schools_count }})
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <i class="fas fa-city fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">
+                                            {% if search_query %}
+                                                По запросу "{{ search_query }}" города не найдены
+                                            {% else %}
+                                                Города не созданы
+                                            {% endif %}
+                                        </p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания города -->
+<div class="modal fade" id="createCityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'create_city' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить город</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cityName" class="form-label">Название города <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="cityName" name="name" 
+                               placeholder="Введите название города" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать город</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

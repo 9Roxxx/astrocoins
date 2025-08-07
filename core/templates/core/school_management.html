@@ -1,0 +1,262 @@
+{% extends "core/base.html" %}
+
+{% block title %}Управление школами - AstroCoins{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-school me-2"></i>Управление школами
+                    </h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSchoolModal">
+                        <i class="fas fa-plus me-2"></i>Добавить школу
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Статистика -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-school fa-2x mb-2"></i>
+                                    <h4>{{ total_schools }}</h4>
+                                    <small>Всего школ</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-book fa-2x mb-2"></i>
+                                    <h4>{{ total_courses }}</h4>
+                                    <small>Всего курсов</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-users fa-2x mb-2"></i>
+                                    <h4>{{ total_groups }}</h4>
+                                    <small>Всего групп</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Фильтры и поиск -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Поиск по названию, директору, адресу..."
+                                       value="{{ search_query }}">
+                                {% if city_filter %}
+                                <input type="hidden" name="city" value="{{ city_filter }}">
+                                {% endif %}
+                                <button type="submit" class="btn btn-outline-primary ms-2">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                {% if search_query %}
+                                <a href="{% url 'school_management' %}{% if city_filter %}?city={{ city_filter }}{% endif %}" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="GET">
+                                <select name="city" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Все города</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city.id }}" {% if city_filter == city.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ city.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if search_query %}
+                                <input type="hidden" name="search" value="{{ search_query }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            {% if city_filter or search_query %}
+                            <a href="{% url 'school_management' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-undo me-1"></i>Сбросить фильтры
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Список школ -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Школа</th>
+                                    <th>Город</th>
+                                    <th>Контакты</th>
+                                    <th>Курсы/Группы</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for school in schools %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ school.name }}</strong>
+                                        <br><small class="text-muted">Директор: {{ school.director }}</small>
+                                        <br><small class="text-muted">Представитель: {{ school.representative }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ school.city.name }}</span>
+                                    </td>
+                                    <td>
+                                        <div><i class="fas fa-phone me-1"></i>{{ school.phone }}</div>
+                                        {% if school.email %}
+                                        <div><i class="fas fa-envelope me-1"></i>{{ school.email }}</div>
+                                        {% endif %}
+                                        {% if school.website %}
+                                        <div><i class="fas fa-globe me-1"></i><a href="{{ school.website }}" target="_blank">Сайт</a></div>
+                                        {% endif %}
+                                        <div><small class="text-muted">{{ school.address|truncatechars:50 }}</small></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ school.courses_count }} курсов</span>
+                                        <br>
+                                        <span class="badge bg-info">{{ school.groups_count }} групп</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical" role="group">
+                                            <a href="{% url 'school_detail' school.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i>Просмотр
+                                            </a>
+                                            <a href="{% url 'school_detail' school.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-book me-1"></i>Курсы ({{ school.courses_count }})
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <i class="fas fa-school fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">
+                                            {% if search_query or city_filter %}
+                                                По заданным критериям школы не найдены
+                                            {% else %}
+                                                Школы не созданы
+                                            {% endif %}
+                                        </p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if schools.has_other_pages %}
+                    <nav aria-label="Навигация по страницам">
+                        <ul class="pagination justify-content-center">
+                            {% if schools.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ schools.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if city_filter %}&city={{ city_filter }}{% endif %}">Предыдущая</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in schools.paginator.page_range %}
+                            {% if num == schools.number %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > schools.number|add:'-3' and num < schools.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if city_filter %}&city={{ city_filter }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if schools.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ schools.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if city_filter %}&city={{ city_filter }}{% endif %}">Следующая</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания школы -->
+<div class="modal fade" id="createSchoolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'create_school' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить школу</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="city" class="form-label">Город <span class="text-danger">*</span></label>
+                                <select class="form-select" id="city" name="city" required>
+                                    <option value="">Выберите город</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city.id }}" {% if city_filter == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Название учреждения <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="director" class="form-label">Директор <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="director" name="director" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="representative" class="form-label">Представитель <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="representative" name="representative" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Телефон <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       placeholder="+7 (XXX) XXX-XX-XX" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="website" class="form-label">Сайт</label>
+                                <input type="url" class="form-control" id="website" name="website" 
+                                       placeholder="https://school.ru">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Адрес <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать школу</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

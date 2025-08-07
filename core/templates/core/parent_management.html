@@ -1,0 +1,438 @@
+{% extends "core/base.html" %}
+
+{% block title %}Управление родителями - AstroCoins{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-friends me-2"></i>Управление родителями
+                    </h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createParentModal">
+                        <i class="fas fa-plus me-2"></i>Создать родителя
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Статистика -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-friends fa-2x mb-2"></i>
+                                    <h4>{{ total_parents }}</h4>
+                                    <small>Всего родителей</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-link fa-2x mb-2"></i>
+                                    <h4>{{ students_with_parents }}</h4>
+                                    <small>Учеников с родителями</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-unlink fa-2x mb-2"></i>
+                                    <h4>{{ students_without_parents_count }}</h4>
+                                    <small>Без родителей</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-search fa-2x mb-2"></i>
+                                    <h4>{{ parents.paginator.count }}</h4>
+                                    <small>Найдено родителей</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Поиск -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Поиск по имени, телефону, email или месту работы..."
+                                       value="{{ search_query }}">
+                                <button type="submit" class="btn btn-outline-primary ms-2">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                {% if search_query %}
+                                <a href="{% url 'parent_management' %}" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Список родителей -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ФИО</th>
+                                    <th>Контакты</th>
+                                    <th>Место работы</th>
+                                    <th>Дети</th>
+                                    <th>Создан</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parent in parents %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ parent.full_name }}</strong>
+                                        {% if parent.notes %}
+                                        <br><small class="text-muted">{{ parent.notes|truncatechars:50 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if parent.phone %}
+                                        <div><i class="fas fa-phone me-1"></i>{{ parent.phone }}</div>
+                                        {% endif %}
+                                        {% if parent.email %}
+                                        <div><i class="fas fa-envelope me-1"></i>{{ parent.email }}</div>
+                                        {% endif %}
+                                        {% if parent.address %}
+                                        <div><i class="fas fa-map-marker-alt me-1"></i>{{ parent.address|truncatechars:30 }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ parent.work_place|default:"—" }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ parent.students_count }} детей</span>
+                                        {% for student in parent.students.all %}
+                                        <div class="small">
+                                            <a href="{% url 'student_profile' student.id %}" class="text-decoration-none">
+                                                {{ student.get_full_name|default:student.username }}
+                                            </a>
+                                        </div>
+                                        {% empty %}
+                                        <small class="text-muted">Нет привязанных детей</small>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {{ parent.created_at|date:"d.m.Y" }}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editParent({{ parent.id }})"
+                                                    data-bs-toggle="modal" data-bs-target="#editParentModal">
+                                                <i class="fas fa-edit me-1"></i>Редактировать
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning"
+                                                    onclick="linkStudentToParent({{ parent.id }}, '{{ parent.full_name }}')"
+                                                    data-bs-toggle="modal" data-bs-target="#linkStudentModal">
+                                                <i class="fas fa-link me-1"></i>Привязать ученика
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    onclick="deleteParent({{ parent.id }}, '{{ parent.full_name }}')"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteParentModal">
+                                                <i class="fas fa-trash me-1"></i>Удалить
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">
+                                            {% if search_query %}
+                                                По запросу "{{ search_query }}" родители не найдены
+                                            {% else %}
+                                                Родители не созданы
+                                            {% endif %}
+                                        </p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if parents.has_other_pages %}
+                    <nav aria-label="Навигация по страницам">
+                        <ul class="pagination justify-content-center">
+                            {% if parents.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ parents.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Предыдущая</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in parents.paginator.page_range %}
+                            {% if num == parents.number %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > parents.number|add:'-3' and num < parents.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if parents.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ parents.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Следующая</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания родителя -->
+<div class="modal fade" id="createParentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'create_parent' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Создать родителя</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="parent_full_name" class="form-label">ФИО родителя <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="parent_full_name" name="parent_full_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="parent_phone" class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="parent_phone" name="parent_phone" 
+                                       placeholder="+7 (9XX) XXX-XX-XX">
+                            </div>
+                            <div class="mb-3">
+                                <label for="parent_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="parent_email" name="parent_email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="parent_work_place" class="form-label">Место работы</label>
+                                <input type="text" class="form-control" id="parent_work_place" name="parent_work_place">
+                            </div>
+                            <div class="mb-3">
+                                <label for="parent_address" class="form-label">Адрес</label>
+                                <textarea class="form-control" id="parent_address" name="parent_address" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="parent_notes" class="form-label">Заметки</label>
+                        <textarea class="form-control" id="parent_notes" name="parent_notes" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="student" class="form-label">Привязать к ученику (опционально)</label>
+                        <select class="form-select" id="student" name="student">
+                            <option value="">Не привязывать</option>
+                            {% for student in students_without_parents %}
+                            <option value="{{ student.id }}">{{ student.get_full_name|default:student.username }} ({{ student.username }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать родителя</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования родителя -->
+<div class="modal fade" id="editParentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="editParentForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактировать родителя</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_full_name" class="form-label">ФИО родителя <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_full_name" name="full_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_phone" class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="edit_phone" name="phone">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit_email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_work_place" class="form-label">Место работы</label>
+                                <input type="text" class="form-control" id="edit_work_place" name="work_place">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_address" class="form-label">Адрес</label>
+                                <textarea class="form-control" id="edit_address" name="address" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_notes" class="form-label">Заметки</label>
+                        <textarea class="form-control" id="edit_notes" name="notes" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Привязанные дети:</label>
+                        <div id="parentStudentsList" class="border rounded p-2 bg-light">
+                            <!-- Будет заполнено через JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно привязки ученика -->
+<div class="modal fade" id="linkStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'link_student_parent' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Привязать ученика к родителю</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Родитель: <strong id="linkParentName"></strong></p>
+                    <input type="hidden" id="linkParentId" name="parent_id">
+                    <div class="mb-3">
+                        <label for="linkStudentSelect" class="form-label">Выберите ученика</label>
+                        <select class="form-select" id="linkStudentSelect" name="student_id" required>
+                            <option value="">Выберите ученика</option>
+                            {% for student in students_without_parents %}
+                            <option value="{{ student.id }}">{{ student.get_full_name|default:student.username }} ({{ student.username }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Привязать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно удаления родителя -->
+<div class="modal fade" id="deleteParentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="deleteParentForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Удалить родителя</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Вы действительно хотите удалить родителя <strong id="deleteParentName"></strong>?
+                    </div>
+                    <p class="text-muted">Привязанные ученики останутся без родителя.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Функция для редактирования родителя
+function editParent(parentId) {
+    fetch(`/api/parent/${parentId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Ошибка: ' + data.error);
+                return;
+            }
+            
+            // Заполняем форму данными
+            document.getElementById('edit_full_name').value = data.full_name || '';
+            document.getElementById('edit_phone').value = data.phone || '';
+            document.getElementById('edit_email').value = data.email || '';
+            document.getElementById('edit_address').value = data.address || '';
+            document.getElementById('edit_work_place').value = data.work_place || '';
+            document.getElementById('edit_notes').value = data.notes || '';
+            
+            // Устанавливаем action формы
+            document.getElementById('editParentForm').action = `/parent/${parentId}/edit/`;
+            
+            // Отображаем привязанных детей
+            const studentsList = document.getElementById('parentStudentsList');
+            if (data.students && data.students.length > 0) {
+                studentsList.innerHTML = data.students.map(student => 
+                    `<div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>${student.name} (${student.username})</span>
+                        <form method="POST" action="/student/${student.id}/unlink-parent/" style="display: inline;">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                    onclick="return confirm('Отвязать ученика ${student.name} от родителя?')">
+                                <i class="fas fa-unlink"></i> Отвязать
+                            </button>
+                        </form>
+                    </div>`
+                ).join('');
+            } else {
+                studentsList.innerHTML = '<small class="text-muted">Нет привязанных детей</small>';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при загрузке данных');
+        });
+}
+
+// Функция для привязки ученика
+function linkStudentToParent(parentId, parentName) {
+    document.getElementById('linkParentId').value = parentId;
+    document.getElementById('linkParentName').textContent = parentName;
+}
+
+// Функция для удаления родителя
+function deleteParent(parentId, parentName) {
+    document.getElementById('deleteParentName').textContent = parentName;
+    document.getElementById('deleteParentForm').action = `/parent/${parentId}/delete/`;
+}
+</script>
+{% endblock %}

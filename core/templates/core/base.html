@@ -192,6 +192,28 @@
                             <i class="fas fa-users-cog me-2"></i>Управление пользователями
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'parent_management' %}">
+                            <i class="fas fa-user-friends me-2"></i>Управление родителями
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="schoolSystemDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-school me-2"></i>Школьная система
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'city_management' %}">
+                                    <i class="fas fa-city me-2"></i>Управление городами
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'school_management' %}">
+                                    <i class="fas fa-school me-2"></i>Управление школами
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     {% endif %}
                     {% endif %}
                 </ul>
