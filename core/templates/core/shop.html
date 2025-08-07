@@ -24,12 +24,44 @@
                     {% endif %}
                 </div>
                 <div class="card-body">
+                    <!-- Поиск и фильтрация -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" 
+                                       placeholder="Поиск товаров по названию или категории...">
+                                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary" id="expandAll">
+                                    <i class="fas fa-expand-alt me-1"></i>Развернуть всё
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" id="collapseAll">
+                                    <i class="fas fa-compress-alt me-1"></i>Свернуть всё
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         {% for category in categories %}
-                        <div class="col-12 mb-4">
+                        <div class="col-12 mb-4 category-section" data-category-name="{{ category.name|lower }}">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="{% if category.is_featured %}text-primary{% endif %} mb-0">
+                                <h4 class="{% if category.is_featured %}text-primary{% endif %} mb-0 category-header" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#category-{{ category.id }}" 
+                                    aria-expanded="true" 
+                                    style="cursor: pointer;">
+                                    <i class="fas fa-chevron-down collapse-icon me-2"></i>
                                     <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
+                                    <span class="product-count text-muted ms-2">({{ category.products.all|length }})</span>
                                     {% if category.is_featured %}<span class="badge bg-primary">🔥 TOP</span>{% endif %}
                                 </h4>
                                 {% if user.is_superuser %}
@@ -47,7 +79,8 @@
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="row g-4">
+                            <div class="collapse show" id="category-{{ category.id }}">
+                                <div class="row g-4">
                                 {% for product in category.products.all %}
                                 {% if product.available %}
                                 <div class="col-md-4 col-lg-3">
@@ -99,6 +132,7 @@
                                 </div>
                                 {% endif %}
                                 {% endfor %}
+                                </div>
                             </div>
                         </div>
                         {% empty %}
@@ -477,5 +511,147 @@ function deleteCategory(categoryId, categoryName) {
         });
     }
 }
+
+// Поиск товаров
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const expandAll = document.getElementById('expandAll');
+    const collapseAll = document.getElementById('collapseAll');
+    const categoryHeaders = document.querySelectorAll('.category-header');
+
+    // Поиск
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const categories = document.querySelectorAll('.category-section');
+        
+        if (searchTerm === '') {
+            // Показываем все категории и товары
+            categories.forEach(category => {
+                category.style.display = 'block';
+                const products = category.querySelectorAll('.product-card');
+                products.forEach(product => {
+                    product.parentElement.style.display = 'block';
+                });
+                updateProductCount(category);
+            });
+        } else {
+            categories.forEach(category => {
+                const categoryName = category.dataset.categoryName;
+                const products = category.querySelectorAll('.product-card');
+                let hasVisibleProducts = false;
+                
+                // Проверяем товары
+                products.forEach(product => {
+                    const productName = product.querySelector('.card-title').textContent.toLowerCase();
+                    const productDescription = product.querySelector('.card-text').textContent.toLowerCase();
+                    
+                    if (productName.includes(searchTerm) || 
+                        productDescription.includes(searchTerm) || 
+                        categoryName.includes(searchTerm)) {
+                        product.parentElement.style.display = 'block';
+                        hasVisibleProducts = true;
+                    } else {
+                        product.parentElement.style.display = 'none';
+                    }
+                });
+                
+                // Показываем/скрываем категорию
+                if (hasVisibleProducts || categoryName.includes(searchTerm)) {
+                    category.style.display = 'block';
+                    // Автоматически разворачиваем категорию при поиске
+                    const collapse = category.querySelector('.collapse');
+                    if (collapse && !collapse.classList.contains('show')) {
+                        new bootstrap.Collapse(collapse, { show: true });
+                    }
+                } else {
+                    category.style.display = 'none';
+                }
+                
+                updateProductCount(category);
+            });
+        }
+    });
+
+    // Очистка поиска
+    clearSearch.addEventListener('click', function() {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+    });
+
+    // Развернуть все категории
+    expandAll.addEventListener('click', function() {
+        const collapses = document.querySelectorAll('.collapse');
+        collapses.forEach(collapse => {
+            if (!collapse.classList.contains('show')) {
+                new bootstrap.Collapse(collapse, { show: true });
+            }
+        });
+    });
+
+    // Свернуть все категории
+    collapseAll.addEventListener('click', function() {
+        const collapses = document.querySelectorAll('.collapse');
+        collapses.forEach(collapse => {
+            if (collapse.classList.contains('show')) {
+                new bootstrap.Collapse(collapse, { hide: true });
+            }
+        });
+    });
+
+    // Обновление иконок сворачивания
+    categoryHeaders.forEach(header => {
+        const targetId = header.getAttribute('data-bs-target');
+        const target = document.querySelector(targetId);
+        const icon = header.querySelector('.collapse-icon');
+        
+        target.addEventListener('shown.bs.collapse', function() {
+            icon.classList.remove('fa-chevron-right');
+            icon.classList.add('fa-chevron-down');
+        });
+        
+        target.addEventListener('hidden.bs.collapse', function() {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-right');
+        });
+    });
+
+    // Функция обновления счетчика товаров
+    function updateProductCount(category) {
+        const visibleProducts = category.querySelectorAll('.product-card:not([style*="display: none"])').length;
+        const countElement = category.querySelector('.product-count');
+        if (countElement) {
+            countElement.textContent = `(${visibleProducts})`;
+        }
+    }
+});
 </script>
+
+<style>
+.category-header:hover {
+    color: #0d6efd !important;
+}
+
+.collapse-icon {
+    transition: transform 0.2s ease;
+}
+
+.product-card {
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+#searchInput:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.category-section {
+    transition: opacity 0.3s ease;
+}
+</style>
 {% endblock %}
