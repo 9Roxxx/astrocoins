@@ -1610,3 +1610,20 @@ def get_group_students(request, group_id):
         return JsonResponse(data)
     except Group.DoesNotExist:
         return JsonResponse({'error': 'Группа не найдена'}, status=404)
+
+
+# ===============================
+# КАСТОМНЫЕ СТРАНИЦЫ ОШИБОК
+# ===============================
+
+def custom_page_not_found_view(request, exception):
+    """Кастомная страница 404"""
+    return render(request, '404.html', status=404)
+
+def custom_server_error_view(request):
+    """Кастомная страница 500"""
+    return render(request, '500.html', status=500)
+
+def custom_permission_denied_view(request, exception):
+    """Кастомная страница 403"""
+    return render(request, '403.html', status=403)

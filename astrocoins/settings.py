@@ -14,15 +14,31 @@ ALLOWED_HOSTS = ['algoritmika25.store', 'www.algoritmika25.store', '127.0.0.1', 
 
 # Настройки безопасности для продакшена (когда DEBUG=False)
 if not DEBUG:
+    # HTTPS настройки
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
+    
+    # HSTS (HTTP Strict Transport Security)
+    SECURE_HSTS_SECONDS = 31536000  # 1 год
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    
+    # Proxy settings
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
+    
+    # Дополнительные настройки безопасности
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+    
+    # Настройки сессий для продакшена
+    SESSION_COOKIE_AGE = 3600  # 1 час
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    
 else:
-    # Полностью отключаем все проверки HTTPS для разработки
+    # Настройки для разработки
     SECURE_SSL_REDIRECT = False
     SECURE_PROXY_SSL_HEADER = None
     SECURE_HSTS_SECONDS = 0
@@ -30,8 +46,10 @@ else:
     SECURE_HSTS_PRELOAD = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    USE_X_FORWARDED_HOST = False
+    USE_X_FORWARDED_PORT = False
 # Минимальные настройки безопасности для разработки
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
@@ -39,9 +57,10 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
-# Настройки сессий для разработки
-SESSION_COOKIE_AGE = 7200  # 2 часа для удобства разработки
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Для удобства разработки
+# Настройки сессий для разработки (переопределены выше для продакшена)
+if DEBUG:
+    SESSION_COOKIE_AGE = 7200  # 2 часа для удобства разработки
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Для удобства разработки
 
 # Application definition
 INSTALLED_APPS = [
@@ -66,6 +85,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
 
@@ -260,3 +280,50 @@ LOGIN_URL = 'account_login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_URL = 'account_logout'
 LOGOUT_REDIRECT_URL = 'account_login'
+
+# Настройки логирования для продакшена
+if not DEBUG:
+    import os
+    log_dir = os.getenv('LOG_DIR', '/var/log/astrocoins')
+    # Создаем директорию для логов, если её нет
+    os.makedirs(log_dir, exist_ok=True)
+    
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'file': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': os.path.join(log_dir, 'django.log'),
+                'formatter': 'verbose',
+            },
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            },
+        },
+        'root': {
+            'handlers': ['console'],  # В продакшене только консоль, файл по желанию
+            'level': 'INFO',
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'core': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }

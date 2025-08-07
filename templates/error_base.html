@@ -1,0 +1,64 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Ошибка - Астрокоины{% endblock %}
+
+{% block content %}
+<style>
+    .error-page-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
+        text-align: center;
+        padding: 2rem;
+    }
+    .error-container {
+        max-width: 600px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .error-code {
+        font-size: 6rem;
+        font-weight: 700;
+        background: linear-gradient(45deg, #6a3d9f, #8a5cbf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0;
+    }
+    .error-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        color: #343a40;
+    }
+    .error-message {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-top: 1rem;
+    }
+    .error-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        color: #6a3d9f;
+    }
+</style>
+
+<div class="error-page-wrapper">
+    <div class="error-container">
+        <div class="error-icon">
+            {% block error_icon %}{% endblock %}
+        </div>
+        <h1 class="error-code">{% block error_code %}{% endblock %}</h1>
+        <h2 class="error-title">{% block error_title %}{% endblock %}</h2>
+        <p class="error-message">{% block error_message %}{% endblock %}</p>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary mt-4">
+            <i class="fas fa-home me-2"></i>
+            Вернуться на главную
+        </a>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,15 @@
+00213e1 Implement advanced shop features and category ordering
+6962bca Add 8 new product categories with 31 items - Stickers/Decals: 4 items (30-70 AC) - Educational Services: 1 TOP service (300 AC) - Food Treats: 1 item (1000 AC) - Watches: 1 item (450 AC) - Games: 1 item (350 AC) - Clothing: 4 items (650-750 AC) - Gift Certificates: 9 digital items (500-1000 AC) - USB/Accessories: 7 items (150-1200 AC) - Badges/Pins: 5 items (100-300 AC) Total: 30 new products created, 1 updated
+02dac59 Add 5 major product categories with 29 new items
+1769a7d Add bracelets category products - Added 4 bracelets with different price points - Price range: 50-200 AC - Includes location availability info - 1 updated existing product, 3 new products - All bracelets primarily available in Vladivostok
+f62bacf Add mousepads category products
+2a6f8bd Add manual product management system
+701a82d Implement real web scraping parser for Algoritmika store
+4a1537b Complete Algoritmika store catalog with all categories filled
+4edca99 Add VPS update automation script
+1f3b6a6 Add missing products to Algoritmika store parser
+115d760 Add Algoritmika store parser and import products
+b089f4a Add star.png as favicon for browser tab
+9c7a7fc Shorten 'Мониторинг активности' to 'Мониторинг' to prevent menu overflow
+bca6632 Fix navigation menu alignment, update logo icon, and implement student loading functionality
+ef194eb fix: Исправлено отображение родителя в форме редактирования ученика

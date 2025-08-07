@@ -11,13 +11,9 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-else:
-    # В продакшене тоже нужно обслуживать media файлы
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Кастомные обработчики ошибок
-handler404 = 'core.error_views.custom_404_view'
-handler500 = 'core.error_views.custom_500_view'
-handler403 = 'core.error_views.custom_403_view'
-handler400 = 'core.error_views.custom_400_view'
+# Назначаем кастомные обработчики для ошибок.
+# Django будет использовать их автоматически, когда DEBUG = False.
+handler403 = 'core.views.custom_permission_denied_view'
+handler404 = 'core.views.custom_page_not_found_view'
+handler500 = 'core.views.custom_server_error_view'

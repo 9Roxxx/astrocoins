@@ -1,0 +1,15 @@
+{% extends "error_base.html" %}
+
+{% block error_icon %}
+    <i class="fas fa-satellite-dish"></i>
+{% endblock %}
+
+{% block error_code %}500{% endblock %}
+
+{% block error_title %}Сбой связи с космодромом!{% endblock %}
+
+{% block error_message %}
+    Что-то пошло не так на нашей стороне. Наши инженеры уже<br>
+    работают над устранением этой аномалии. Попробуйте позже.
+{% endblock %}
+

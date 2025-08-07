@@ -1,0 +1,15 @@
+{% extends "error_base.html" %}
+
+{% block error_icon %}
+    <i class="fas fa-user-secret"></i>
+{% endblock %}
+
+{% block error_code %}403{% endblock %}
+
+{% block error_title %}Доступ запрещен!{% endblock %}
+
+{% block error_message %}
+    У вас нет необходимого уровня допуска для доступа к этому сектору. <br>
+    Пожалуйста, вернитесь на главную или свяжитесь с администрацией.
+{% endblock %}
+
