@@ -243,6 +243,169 @@ class Command(BaseCommand):
                 'description': 'Большой желтый коврик для мыши',
                 'is_digital': False,
                 'featured': False
+            },
+            # Дополнительные товары для пустых категорий
+            {
+                'name': 'Бутылка для воды "Алгоритмика"',
+                'price': 400,
+                'stock': 20,
+                'category': 'Бутылки и стаканы',
+                'description': 'Спортивная бутылка для воды с логотипом Алгоритмики',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Термокружка "Code & Coffee"',
+                'price': 600,
+                'stock': 15,
+                'category': 'Бутылки и стаканы',
+                'description': 'Термокружка для кофе с надписью "Code & Coffee"',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Рюкзак "Алгоритмика" черный',
+                'price': 2000,
+                'stock': 8,
+                'category': 'Рюкзаки и сумки',
+                'description': 'Стильный черный рюкзак с логотипом Алгоритмики для ноутбука',
+                'is_digital': False,
+                'featured': True
+            },
+            {
+                'name': 'Сумка для ноутбука "Tech Style"',
+                'price': 1500,
+                'stock': 12,
+                'category': 'Рюкзаки и сумки',
+                'description': 'Удобная сумка для ноутбука в техно-стиле',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Кепка "Алгоритмика" синяя',
+                'price': 500,
+                'stock': 25,
+                'category': 'Головные уборы',
+                'description': 'Синяя кепка с вышитым логотипом Алгоритмики',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Шапка "Code Ninja"',
+                'price': 600,
+                'stock': 18,
+                'category': 'Головные уборы',
+                'description': 'Теплая шапка с надписью "Code Ninja"',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Набор стикеров "IT-мемы"',
+                'price': 150,
+                'stock': 100,
+                'category': 'Наклейки и переводки',
+                'description': 'Набор из 20 стикеров с популярными IT-мемами',
+                'is_digital': False,
+                'featured': True
+            },
+            {
+                'name': 'Переводки "HTML теги"',
+                'price': 100,
+                'stock': 50,
+                'category': 'Наклейки и переводки',
+                'description': 'Переводки с основными HTML тегами для декора',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Конфеты "Алгоритмика" мятные',
+                'price': 80,
+                'stock': 200,
+                'category': 'Вкусняшки',
+                'description': 'Мятные конфеты с логотипом Алгоритмики',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Шоколадка "Bug Free"',
+                'price': 120,
+                'stock': 150,
+                'category': 'Вкусняшки',
+                'description': 'Молочный шоколад с надписью "Bug Free"',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Часы настенные "Binary Time"',
+                'price': 1200,
+                'stock': 5,
+                'category': 'Часы',
+                'description': 'Необычные настенные часы, показывающие время в двоичном коде',
+                'is_digital': False,
+                'featured': True
+            },
+            {
+                'name': 'Наручные часы "Алгоритмика"',
+                'price': 2500,
+                'stock': 10,
+                'category': 'Часы',
+                'description': 'Стильные наручные часы с логотипом Алгоритмики',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Настольная игра "Алгоритмы"',
+                'price': 1800,
+                'stock': 15,
+                'category': 'Игры',
+                'description': 'Образовательная настольная игра для изучения алгоритмов',
+                'is_digital': False,
+                'featured': True
+            },
+            {
+                'name': 'Пазл "Код программиста"',
+                'price': 800,
+                'stock': 20,
+                'category': 'Игры',
+                'description': 'Пазл из 500 деталей с изображением кода',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Футболка "Алгоритмика" черная',
+                'price': 900,
+                'stock': 30,
+                'category': 'Одежда',
+                'description': 'Черная футболка с логотипом Алгоритмики',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Худи "Code Life" серое',
+                'price': 2200,
+                'stock': 15,
+                'category': 'Одежда',
+                'description': 'Серое худи с надписью "Code Life"',
+                'is_digital': False,
+                'featured': True
+            },
+            {
+                'name': 'Значок "Python"',
+                'price': 80,
+                'stock': 100,
+                'category': 'Значки и бейджи',
+                'description': 'Металлический значок с логотипом Python',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Бейдж школьный "Ученик Алгоритмики"',
+                'price': 120,
+                'stock': 50,
+                'category': 'Значки и бейджи',
+                'description': 'Школьный бейдж для учеников Алгоритмики',
+                'is_digital': False,
+                'featured': False
             }
         ]
         
