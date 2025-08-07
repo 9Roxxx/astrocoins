@@ -44,6 +44,7 @@ urlpatterns = [
     path('course/<int:course_id>/edit/', views.edit_course, name='edit_course'),
     path('course/<int:course_id>/delete/', views.delete_course, name='delete_course'),
     path('api/school/<int:school_id>/courses/', views.get_courses_by_school, name='get_courses_by_school'),
+    path('api/group/<int:group_id>/students/', views.get_group_students, name='get_group_students'),
     
     # Страницы футера
     path('institutions/', views.institutions, name='institutions'),

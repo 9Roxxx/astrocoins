@@ -1493,3 +1493,39 @@ def get_courses_by_school(request, school_id):
         return JsonResponse(data)
     except School.DoesNotExist:
         return JsonResponse({'error': 'Школа не найдена'}, status=404)
+
+
+@login_required
+def get_group_students(request, group_id):
+    """
+    API для получения списка учеников группы
+    """
+    try:
+        group = Group.objects.get(id=group_id)
+        
+        # Проверяем права доступа: либо преподаватель этой группы, либо суперпользователь
+        if not (request.user.is_superuser or 
+                (request.user.is_teacher and group.teacher == request.user)):
+            return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+        
+        students = group.students.all().order_by('last_name', 'first_name', 'username')
+        data = {
+            'students': [
+                {
+                    'id': student.id,
+                    'username': student.username,
+                    'full_name': student.get_full_name() or student.username,
+                    'first_name': student.first_name,
+                    'last_name': student.last_name,
+                    'astrocoins': student.profile.astrocoins,
+                    'email': student.email,
+                    'date_joined': student.date_joined.strftime('%d.%m.%Y'),
+                }
+                for student in students
+            ],
+            'group_name': group.name,
+            'total_students': students.count()
+        }
+        return JsonResponse(data)
+    except Group.DoesNotExist:
+        return JsonResponse({'error': 'Группа не найдена'}, status=404)
