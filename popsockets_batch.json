@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Попсокет \"Open Source\"",
+    "price": 100,
+    "category": "Попсокеты",
+    "stock": 25,
+    "description": "Попсокет для любителей открытого исходного кода.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Попсокет Чек IT",
+    "price": 100,
+    "category": "Попсокеты",
+    "stock": 36,
+    "description": "Стильный попсокет с IT-тематикой.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Чек IT \"Алгоритмика\"",
+    "price": 100,
+    "category": "Попсокеты",
+    "stock": 24,
+    "description": "Попсокет с логотипом Алгоритмики в IT-стиле.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Попсокет \"Алгоритмика это жизнь!\"",
+    "price": 100,
+    "category": "Попсокеты",
+    "stock": 7,
+    "description": "Мотивирующий попсокет для фанатов Алгоритмики. В Благовещенске нет в наличии.",
+    "is_digital": false,
+    "featured": false
+  }
+]

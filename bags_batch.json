@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Сумка-рюкзак \"Алгоритмика\"",
+    "price": 250,
+    "category": "Рюкзаки и сумки",
+    "stock": 30,
+    "description": "Удобная сумка-рюкзак с логотипом Алгоритмики.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Шопер",
+    "price": 350,
+    "category": "Рюкзаки и сумки",
+    "stock": 2,
+    "description": "Стильная сумка-шопер. В Благовещенске и в Уссурийске нет в наличии.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Рюкзак-сумка голубой",
+    "price": 250,
+    "category": "Рюкзаки и сумки",
+    "stock": 10,
+    "description": "Стильный голубой рюкзак-сумка.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Рюкзак-сумка розовый",
+    "price": 250,
+    "category": "Рюкзаки и сумки",
+    "stock": 9,
+    "description": "Стильный розовый рюкзак-сумка.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Рюкзак-сумка желтый",
+    "price": 250,
+    "category": "Рюкзаки и сумки",
+    "stock": 9,
+    "description": "Стильный желтый рюкзак-сумка.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Сумка поясная Владивосток",
+    "price": 700,
+    "category": "Рюкзаки и сумки",
+    "stock": 10,
+    "description": "Удобная поясная сумка. Доступна во Владивостоке.",
+    "is_digital": false,
+    "featured": false
+  }
+]

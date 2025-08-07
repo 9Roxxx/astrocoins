@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Кепка фиолетовая",
+    "price": 400,
+    "category": "Головные уборы",
+    "stock": 3,
+    "description": "Стильная фиолетовая кепка.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Кепка красная",
+    "price": 400,
+    "category": "Головные уборы",
+    "stock": 4,
+    "description": "Яркая красная кепка.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Кепка жёлтая",
+    "price": 400,
+    "category": "Головные уборы",
+    "stock": 5,
+    "description": "Солнечная жёлтая кепка.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Панама жёлтая",
+    "price": 400,
+    "category": "Головные уборы",
+    "stock": 3,
+    "description": "Удобная жёлтая панама для защиты от солнца.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Панама чёрная",
+    "price": 400,
+    "category": "Головные уборы",
+    "stock": 5,
+    "description": "Классическая чёрная панама.",
+    "is_digital": false,
+    "featured": false
+  },
+  {
+    "name": "Панама красная",
+    "price": 400,
+    "category": "Головные уборы",
+    "stock": 5,
+    "description": "Яркая красная панама.",
+    "is_digital": false,
+    "featured": false
+  }
+]
