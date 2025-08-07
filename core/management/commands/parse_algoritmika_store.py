@@ -207,6 +207,42 @@ class Command(BaseCommand):
                 'description': 'Попсокет для телефона с надписью "Code Life" для юных программистов',
                 'is_digital': False,
                 'featured': False
+            },
+            {
+                'name': 'Попсокет "Open Source"',
+                'price': 100,
+                'stock': 25,
+                'category': 'Попсокеты',
+                'description': 'Попсокет для телефона с надписью "Open Source"',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': '80 робаксов с зачислением через 7 дней',
+                'price': 150,
+                'stock': 20,
+                'category': 'Игровые валюты',
+                'description': '80 робаксов для Roblox с зачислением через 7 дней (Уссурийск нет в наличии)',
+                'is_digital': True,
+                'featured': True
+            },
+            {
+                'name': 'Коврик гигант фиолетовый',
+                'price': 350,
+                'stock': 3,
+                'category': 'Коврики для мыши',
+                'description': 'Большой фиолетовый коврик для мыши',
+                'is_digital': False,
+                'featured': False
+            },
+            {
+                'name': 'Коврик гигант желтый',
+                'price': 350,
+                'stock': 5,
+                'category': 'Коврики для мыши',
+                'description': 'Большой желтый коврик для мыши',
+                'is_digital': False,
+                'featured': False
             }
         ]
         
