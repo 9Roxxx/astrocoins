@@ -48,6 +48,11 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
+### 8.1. Создать тестовых преподавателей (если их нет)
+```bash
+python manage.py create_teachers
+```
+
 ### 9. Собрать статические файлы
 ```bash
 python manage.py collectstatic --noinput

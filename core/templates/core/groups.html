@@ -150,6 +150,15 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="groupTeacher" class="form-label">Преподаватель <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="groupTeacher" name="teacher" required>
+                                        <option value="">Выберите преподавателя</option>
+                                        {% for teacher in group_form.teacher.field.queryset %}
+                                        <option value="{{ teacher.id }}">{{ teacher.get_full_name|default:teacher.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="groupCurator" class="form-label">Куратор</label>
                                     <select class="form-select" id="groupCurator" name="curator">
                                         <option value="">Не назначен</option>
