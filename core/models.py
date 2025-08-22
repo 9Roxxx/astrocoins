@@ -89,7 +89,7 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('student', 'Ученик'),
         ('teacher', 'Преподаватель'),
-        ('admin', 'Администратор'),
+        ('city_admin', 'Администратор города'),
     ]
     
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
@@ -114,7 +114,7 @@ class User(AbstractUser):
                               related_name='students', verbose_name='Родитель')
 
     def is_teacher(self):
-        return self.role == 'teacher' or self.role == 'admin'
+        return self.role == 'teacher' or self.role == 'city_admin'
     
     def is_student(self):
         return self.role == 'student'
@@ -123,7 +123,7 @@ class User(AbstractUser):
         """Получить все города пользователя"""
         if self.role == 'teacher':
             return self.cities.all()
-        elif self.role in ['student', 'admin'] and self.city:
+        elif self.role in ['student', 'city_admin'] and self.city:
             return [self.city]
         return []
     
@@ -133,7 +133,7 @@ class User(AbstractUser):
             return True
         if self.role == 'teacher':
             return city in self.cities.all()
-        elif self.role in ['student', 'admin']:
+        elif self.role in ['student', 'city_admin']:
             return self.city == city
         return False
     
@@ -191,6 +191,12 @@ class ProductCategory(models.Model):
     is_featured = models.BooleanField(default=False)  # Для "горячих" категорий (🔥)
     icon = models.CharField(max_length=50, blank=True)  # Для иконок Font Awesome
     order = models.PositiveIntegerField(default=0)  # Для сортировки
+    
+    # Региональная система - каждая категория принадлежит одному городу
+    city = models.ForeignKey('City', on_delete=models.CASCADE, related_name='categories',
+                            verbose_name='Город', help_text='Город в котором создана эта категория',
+                            null=True, blank=True)  # Временно nullable для миграции
+    
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -233,10 +239,10 @@ class Product(models.Model):
     is_digital = models.BooleanField(default=False)  # Цифровой товар (например, Roblox, Steam)
     featured = models.BooleanField(default=False)  # Популярный товар
     
-    # Региональная система - в каких городах доступен товар
-    available_cities = models.ManyToManyField('City', blank=True, related_name='products',
-                                            verbose_name='Доступен в городах', 
-                                            help_text='Выберите города где доступен этот товар')
+    # Региональная система - товар принадлежит одному городу
+    city = models.ForeignKey('City', on_delete=models.CASCADE, related_name='products',
+                            verbose_name='Город', help_text='Город в котором создан этот товар',
+                            null=True, blank=True)  # Временно nullable для миграции
     
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -404,9 +410,9 @@ class Group(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='groups', verbose_name='Курс', null=True, blank=True)
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='groups', verbose_name='Школа', null=True, blank=True)
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teaching_groups', 
-                               limit_choices_to={'role__in': ['teacher', 'admin']}, verbose_name='Преподаватель')
+                               limit_choices_to={'role__in': ['teacher', 'city_admin']}, verbose_name='Преподаватель')
     curator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
-                               related_name='curated_groups', limit_choices_to={'role': 'admin'}, 
+                               related_name='curated_groups', limit_choices_to={'role': 'city_admin'}, 
                                verbose_name='Куратор')
     
     # Расписание и место

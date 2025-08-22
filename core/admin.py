@@ -113,19 +113,30 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(ProductCategory)
 class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'get_icon_display', 'get_featured_display', 'order', 'get_products_count')
-    list_filter = ('is_featured',)
+    list_display = ('name', 'get_icon_display', 'get_featured_display', 'get_city_display', 'order', 'get_products_count')
+    list_filter = ('is_featured', 'city')
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}
     ordering = ('order', 'name')
+    readonly_fields = ('city',)  # city будет автоматически назначаться
 
     def get_featured_display(self, obj):
         return "🔥 Горячая" if obj.is_featured else "Обычная"
     get_featured_display.short_description = 'Тип категории'
 
+    def get_city_display(self, obj):
+        if obj.city:
+            return f"🏙️ {obj.city.name}"
+        return "❌ Город не указан"
+    get_city_display.short_description = 'Город'
+
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'slug', 'description')
+        }),
+        ('Региональные настройки', {
+            'fields': ('city',),
+            'description': 'Категория автоматически привязывается к вашему городу'
         }),
         ('Настройки отображения', {
             'fields': ('icon', 'order', 'is_featured')
@@ -142,6 +153,26 @@ class ProductCategoryAdmin(admin.ModelAdmin):
         return obj.products.count()
     get_products_count.short_description = 'Товаров'
 
+    def save_model(self, request, obj, form, change):
+        """Автоматически привязывает категорию к городу администратора"""
+        # Если у категории нет города и у администратора есть город
+        if not obj.city and hasattr(request.user, 'city') and request.user.city:
+            obj.city = request.user.city
+        super().save_model(request, obj, form, change)
+    
+    def get_queryset(self, request):
+        """Фильтрует категории для администраторов городов"""
+        qs = super().get_queryset(request)
+        
+        # Если пользователь - администратор города (не главный суперпользователь)
+        if (hasattr(request.user, 'city') and request.user.city and 
+            request.user.role == 'city_admin' and 
+            not (request.user.is_superuser and not request.user.city)):
+            # Показывать только категории из города администратора
+            qs = qs.filter(city=request.user.city)
+        
+        return qs
+
     class Media:
         css = {
             'all': ('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',)
@@ -149,12 +180,11 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'stock', 'get_availability_display', 'get_cities_display', 'get_featured_display', 'get_type_display', 'get_image')
-    list_filter = ('category', 'available', 'featured', 'is_digital', 'available_cities', 'created_at')
+    list_display = ('name', 'category', 'price', 'stock', 'get_availability_display', 'get_city_display', 'get_featured_display', 'get_type_display', 'get_image')
+    list_filter = ('category', 'available', 'featured', 'is_digital', 'city', 'created_at')
     search_fields = ('name', 'description', 'category__name')
-    readonly_fields = ('get_image',)
+    readonly_fields = ('get_image', 'city')  # city будет автоматически назначаться
     prepopulated_fields = {'slug': ('name',)}
-    filter_horizontal = ('available_cities',)  # Удобный виджет для выбора городов
     
     fieldsets = (
         ('Основная информация', {
@@ -164,8 +194,8 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': ('image', 'get_image')
         }),
         ('Региональные настройки', {
-            'fields': ('available_cities',),
-            'description': 'Выберите города где будет доступен товар. Если не выбрано ни одного города, товар будет доступен только в вашем городе.'
+            'fields': ('city',),
+            'description': 'Товар автоматически привязывается к вашему городу'
         }),
         ('Настройки', {
             'fields': ('available', 'stock', 'is_digital', 'featured')
@@ -184,15 +214,11 @@ class ProductAdmin(admin.ModelAdmin):
         return "💻 Цифровой" if obj.is_digital else "📦 Физический"
     get_type_display.short_description = 'Тип товара'
 
-    def get_cities_display(self, obj):
-        cities = obj.available_cities.all()
-        if cities.exists():
-            city_names = [city.name for city in cities]
-            if len(city_names) > 2:
-                return f"{', '.join(city_names[:2])}... (+{len(city_names)-2})"
-            return ', '.join(city_names)
-        return "🏙️ Город администратора"
-    get_cities_display.short_description = 'Доступен в городах'
+    def get_city_display(self, obj):
+        if obj.city:
+            return f"🏙️ {obj.city.name}"
+        return "❌ Город не указан"
+    get_city_display.short_description = 'Город'
 
     def get_image(self, obj):
         if obj.image:
@@ -201,12 +227,11 @@ class ProductAdmin(admin.ModelAdmin):
     get_image.short_description = 'Изображение'
     
     def save_model(self, request, obj, form, change):
-        """Автоматически добавляет город администратора если города не выбраны"""
+        """Автоматически привязывает товар к городу администратора"""
+        # Если у товара нет города и у администратора есть город
+        if not obj.city and hasattr(request.user, 'city') and request.user.city:
+            obj.city = request.user.city
         super().save_model(request, obj, form, change)
-        
-        # Если города не выбраны и у администратора есть город
-        if not obj.available_cities.exists() and hasattr(request.user, 'city') and request.user.city:
-            obj.available_cities.add(request.user.city)
     
     def get_queryset(self, request):
         """Фильтрует товары для администраторов городов"""
@@ -214,10 +239,10 @@ class ProductAdmin(admin.ModelAdmin):
         
         # Если пользователь - администратор города (не главный суперпользователь)
         if (hasattr(request.user, 'city') and request.user.city and 
-            request.user.role == 'admin' and 
+            request.user.role == 'city_admin' and 
             not (request.user.is_superuser and not request.user.city)):
-            # Показывать только товары доступные в городе администратора
-            qs = qs.filter(available_cities=request.user.city)
+            # Показывать только товары из города администратора
+            qs = qs.filter(city=request.user.city)
         
         return qs
 
