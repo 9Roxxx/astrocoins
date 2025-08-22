@@ -1,10 +1,27 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.utils import timezone
 from django.utils.text import slugify
 from .validators import validate_file_type, validate_file_size
 import uuid
 import re
+
+class CaseInsensitiveUserManager(UserManager):
+    """Менеджер пользователей с поддержкой регистронезависимого поиска"""
+    
+    def get_by_natural_key(self, username):
+        """Поиск пользователя без учета регистра"""
+        return self.get(username__iexact=username)
+    
+    def authenticate_user(self, username, password):
+        """Аутентификация пользователя без учета регистра"""
+        try:
+            user = self.get(username__iexact=username)
+            if user.check_password(password):
+                return user
+        except self.model.DoesNotExist:
+            pass
+        return None
 
 def create_cyrillic_slug(text):
     """Создает slug с поддержкой кириллицы"""
@@ -76,6 +93,9 @@ class User(AbstractUser):
     ]
     
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    
+    # Добавляем кастомный менеджер для регистронезависимого поиска
+    objects = CaseInsensitiveUserManager()
     group = models.ForeignKey('Group', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
     
     # Дополнительные поля для учеников
