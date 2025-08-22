@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-only-for-development-change-in-pro
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['algoritmika25.store', 'www.algoritmika25.store', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['algoritmika25.store', 'www.algoritmika25.store', '127.0.0.1', 'localhost', 'testserver']
 
 # Настройки безопасности для продакшена (когда DEBUG=False)
 if not DEBUG:

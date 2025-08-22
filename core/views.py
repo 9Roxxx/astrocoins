@@ -462,21 +462,25 @@ def groups(request):
     
     if request.user.is_teacher():
         # Для преподавателя показываем его группы и форму создания группы
-        groups = Group.objects.filter(teacher=request.user)
+        groups = Group.objects.filter(teacher=request.user).select_related('course', 'school', 'curator')
         
         if request.method == 'POST':
             action = request.POST.get('action')
             
             if action == 'create_group':
-                name = request.POST.get('name')
-                description = request.POST.get('description')
-                if name:
-                    Group.objects.create(
-                        name=name,
-                        description=description,
-                        teacher=request.user
-                    )
-                    messages.success(request, 'Группа успешно создана')
+                form = GroupForm(request.POST)
+                if form.is_valid():
+                    try:
+                        group = form.save(commit=False)
+                        group.teacher = request.user  # Устанавливаем текущего пользователя как преподавателя
+                        group.save()
+                        messages.success(request, f'Группа "{group.name}" успешно создана')
+                    except Exception as e:
+                        messages.error(request, f'Ошибка при создании группы: {str(e)}')
+                else:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f'{form.fields[field].label}: {error}')
             
             elif action == 'award_coins':
                 student_id = request.POST.get('student_id')
@@ -513,6 +517,7 @@ def groups(request):
                 comment = request.POST.get('comment', '')
                 
                 try:
+                    from .models import AwardReason
                     group = Group.objects.get(id=group_id)
                     reason = AwardReason.objects.get(id=reason_id)
                     
@@ -556,6 +561,7 @@ def groups(request):
                 comment = request.POST.get('comment', '')
                 
                 try:
+                    from .models import AwardReason
                     student = User.objects.get(id=student_id, role='student')
                     reason = AwardReason.objects.get(id=reason_id)
                     
@@ -584,20 +590,24 @@ def groups(request):
                     messages.error(request, f'Произошла ошибка при начислении: {str(e)}')
         
         # Получаем шаблоны начислений для учителей
-        from .models import AwardReason
         award_reasons = AwardReason.objects.all().order_by('coins')
         
         context.update({
-            'teacher_groups': groups,
+            'groups': groups,
             'award_reasons': award_reasons,
             'is_teacher': True,
-            'is_superuser': request.user.is_superuser
+            'is_superuser': request.user.is_superuser,
+            'group_form': GroupForm(),
+            'cities': City.objects.all().order_by('name'),
+            'schools': School.objects.all().order_by('city__name', 'name'),
+            'courses': Course.objects.filter(is_active=True).order_by('school__name', 'name'),
         })
     else:
         # Для ученика показываем его группу и статистику
         if request.user.group:
             context.update({
-                'student_group': request.user.group,
+                'group': request.user.group,
+                'classmates': request.user.group.students.exclude(id=request.user.id),
                 'is_teacher': False
             })
     
@@ -1689,56 +1699,7 @@ def delete_course(request, course_id):
     return redirect('school_management')
 
 
-# Обновляем view для групп
-@login_required
-def groups(request):
-    """
-    Обновленная страница управления группами
-    """
-    context = {}
-    
-    if request.user.is_teacher():
-        # Для преподавателя показываем его группы и форму создания группы
-        groups = Group.objects.filter(teacher=request.user).select_related('course', 'school', 'curator')
-        
-        if request.method == 'POST':
-            action = request.POST.get('action')
-            
-            if action == 'create_group':
-                form = GroupForm(request.POST)
-                if form.is_valid():
-                    try:
-                        group = form.save(commit=False)
-                        group.teacher = request.user  # Устанавливаем текущего пользователя как преподавателя
-                        group.save()
-                        messages.success(request, f'Группа "{group.name}" успешно создана')
-                    except Exception as e:
-                        messages.error(request, f'Ошибка при создании группы: {str(e)}')
-                else:
-                    for field, errors in form.errors.items():
-                        for error in errors:
-                            messages.error(request, f'{form.fields[field].label}: {error}')
-            
-            elif action == 'award_coins':
-                # ... остальной код для начисления монет остается без изменений
-                pass
-        
-        context.update({
-            'groups': groups,
-            'group_form': GroupForm(),
-            'award_reasons': AwardReason.objects.all(),
-            'cities': City.objects.all().order_by('name'),
-            'schools': School.objects.all().order_by('city__name', 'name'),
-            'courses': Course.objects.filter(is_active=True).order_by('school__name', 'name'),
-        })
-    
-    else:
-        # Для студентов показываем их группу
-        if request.user.group:
-            context['group'] = request.user.group
-            context['classmates'] = request.user.group.students.exclude(id=request.user.id)
-    
-    return render(request, 'core/groups.html', context)
+
 
 
 @login_required
