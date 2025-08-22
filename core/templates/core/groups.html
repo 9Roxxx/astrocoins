@@ -379,7 +379,7 @@
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="add_student_to_group">
                                             <input type="hidden" name="student_id" value="{{ student.id }}">
-                                            <input type="hidden" name="group_id" id="addToGroupId">
+                                            <input type="hidden" name="group_id" value="">
                                             <button type="submit" class="btn btn-sm btn-success" 
                                                     title="Добавить в группу">
                                                 <i class="fas fa-plus"></i>
@@ -610,10 +610,19 @@ function showDeleteGroupModal(groupId, groupName) {
     document.getElementById('deleteGroupName').textContent = groupName;
 }
 
+// Глобальная переменная для хранения ID группы
+let currentManageGroupId = null;
+
 // Функция для показа модального окна управления учениками
 function showManageStudentsModal(groupId, groupName) {
+    currentManageGroupId = groupId;
     document.getElementById('manageGroupName').textContent = groupName;
-    document.getElementById('addToGroupId').value = groupId;
+    
+    // Устанавливаем group_id для всех форм добавления
+    const addToGroupInputs = document.querySelectorAll('input[name="group_id"]');
+    addToGroupInputs.forEach(input => {
+        input.value = groupId;
+    });
     
     // Загружаем список учеников в группе
     loadGroupStudentsForManagement(groupId);
