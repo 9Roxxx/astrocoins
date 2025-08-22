@@ -78,8 +78,10 @@ def shop(request):
             # Если у пользователя нет города (главный суперадмин) - видит все
             category.filtered_products = category.products.all().order_by('-featured', '-created_at')
     
-    # Убираем категории без товаров
-    categories = [cat for cat in categories if cat.filtered_products.exists()]
+    # Убираем категории без товаров ТОЛЬКО для учеников
+    # Администраторы должны видеть все категории, чтобы добавлять в них товары
+    if request.user.role == 'student':
+        categories = [cat for cat in categories if cat.filtered_products.exists()]
     
     # Добавляем случайный фон и для магазина
     random_background = random.choice(GAME_BACKGROUNDS)
