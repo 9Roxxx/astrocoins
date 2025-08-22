@@ -1863,3 +1863,85 @@ def custom_server_error_view(request):
 def custom_permission_denied_view(request, exception):
     """Кастомная страница 403"""
     return render(request, '403.html', status=403)
+
+
+@login_required
+def get_courses_by_school(request, school_id):
+    """
+    API endpoint для получения курсов по школе
+    """
+    try:
+        school = School.objects.get(id=school_id)
+        courses = Course.objects.filter(school=school, is_active=True).order_by('name')
+        
+        courses_data = []
+        for course in courses:
+            courses_data.append({
+                'id': course.id,
+                'name': course.name,
+                'description': course.description,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'courses': courses_data
+        })
+    
+    except School.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Школа не найдена'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required
+def get_group_students(request, group_id):
+    """
+    API endpoint для получения учеников группы
+    """
+    try:
+        group = Group.objects.get(id=group_id)
+        
+        # Проверяем права доступа
+        if not (request.user.is_superuser or 
+                (request.user.is_teacher() and group.teacher == request.user)):
+            return JsonResponse({
+                'success': False,
+                'error': 'Недостаточно прав для просмотра учеников группы'
+            })
+        
+        students = User.objects.filter(group=group, role='student').order_by('username')
+        
+        students_data = []
+        for student in students:
+            students_data.append({
+                'id': student.id,
+                'username': student.username,
+                'full_name': student.get_full_name() or student.username,
+                'email': student.email,
+                'astrocoins': student.profile.astrocoins if hasattr(student, 'profile') else 0,
+                'date_joined': student.date_joined.strftime('%d.%m.%Y'),
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'group_name': group.name,
+            'total_students': len(students_data),
+            'students': students_data
+        })
+    
+    except Group.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Группа не найдена'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

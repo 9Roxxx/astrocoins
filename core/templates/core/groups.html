@@ -627,6 +627,11 @@ function loadGroupStudentsForManagement(groupId) {
     fetch(`/api/group/${groupId}/students/`)
         .then(response => response.json())
         .then(data => {
+            if (data.error) {
+                studentsList.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+            
             let html = '';
             
             if (data.students && data.students.length > 0) {
@@ -638,6 +643,11 @@ function loadGroupStudentsForManagement(groupId) {
                             <div>
                                 <strong>${student.full_name}</strong>
                                 <br><small class="text-muted">@${student.username}</small>
+                                <div class="mt-1">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-coins me-1"></i>${student.astrocoins} AC
+                                    </span>
+                                </div>
                             </div>
                             <form method="post" style="display: inline;">
                                 <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
