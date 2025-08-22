@@ -241,7 +241,7 @@ def purchase_product(request, product_id):
     
     # Проверяем доступность товара в городе ученика
     if request.user.is_student() and request.user.city:
-        if request.user.city not in product.available_cities.all():
+        if product.city != request.user.city:
             messages.error(request, 'Этот товар недоступен в вашем городе!')
             return redirect('shop')
     
