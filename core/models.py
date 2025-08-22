@@ -98,6 +98,12 @@ class User(AbstractUser):
     objects = CaseInsensitiveUserManager()
     group = models.ForeignKey('Group', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
     
+    # Поля для региональной системы
+    city = models.ForeignKey('City', on_delete=models.SET_NULL, null=True, blank=True, 
+                            verbose_name='Город', help_text='Основной город (для администраторов и учеников)')
+    cities = models.ManyToManyField('City', blank=True, related_name='teachers', 
+                                   verbose_name='Города', help_text='Города где работает учитель')
+    
     # Дополнительные поля для учеников
     birth_date = models.DateField(null=True, blank=True, verbose_name='Дата рождения')
     parent_full_name = models.CharField(max_length=255, blank=True, verbose_name='ФИО родителя (устаревшее)')
@@ -112,6 +118,24 @@ class User(AbstractUser):
     
     def is_student(self):
         return self.role == 'student'
+    
+    def get_cities(self):
+        """Получить все города пользователя"""
+        if self.role == 'teacher':
+            return self.cities.all()
+        elif self.role in ['student', 'admin'] and self.city:
+            return [self.city]
+        return []
+    
+    def can_access_city(self, city):
+        """Проверить может ли пользователь работать с данным городом"""
+        if self.is_superuser:
+            return True
+        if self.role == 'teacher':
+            return city in self.cities.all()
+        elif self.role in ['student', 'admin']:
+            return self.city == city
+        return False
     
     def get_parent_info(self):
         """Получить информацию о родителе (новая модель или старые поля)"""
@@ -208,6 +232,12 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=1)  # Количество в наличии
     is_digital = models.BooleanField(default=False)  # Цифровой товар (например, Roblox, Steam)
     featured = models.BooleanField(default=False)  # Популярный товар
+    
+    # Региональная система - в каких городах доступен товар
+    available_cities = models.ManyToManyField('City', blank=True, related_name='products',
+                                            verbose_name='Доступен в городах', 
+                                            help_text='Выберите города где доступен этот товар')
+    
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
