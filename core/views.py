@@ -534,16 +534,27 @@ def groups(request):
                         return redirect('groups')
                     
                     # Начисляем астрокоины каждому ученику
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    
                     awards_count = 0
                     for student in students:
-                        CoinAward.objects.create(
-                            student=student,
-                            teacher=request.user,
-                            reason=reason,
-                            amount=reason.coins,
-                            comment=comment
-                        )
-                        awards_count += 1
+                        try:
+                            logger.info(f"Групповое начисление: student_id={student.id}, teacher_id={request.user.id}, reason_id={reason.id}, amount={reason.coins}")
+                            
+                            award = CoinAward.objects.create(
+                                student=student,
+                                teacher=request.user,
+                                reason=reason,
+                                amount=reason.coins,
+                                comment=comment
+                            )
+                            awards_count += 1
+                            logger.info(f"Групповая награда создана: award_id={award.id} для student_id={student.id}")
+                            
+                        except Exception as e:
+                            logger.error(f"Ошибка при групповом начислении для student_id={student.id}: {e}")
+                            messages.error(request, f'Ошибка при начислении ученику {student.get_full_name() or student.username}: {str(e)}')
                     
                     messages.success(request, f'Успешно начислено {reason.coins} AC каждому из {awards_count} учеников группы "{group.name}"')
                     
@@ -572,15 +583,26 @@ def groups(request):
                         return redirect('groups')
                     
                     # Создаем награду
-                    CoinAward.objects.create(
-                        student=student,
-                        teacher=request.user,
-                        reason=reason,
-                        amount=reason.coins,
-                        comment=comment
-                    )
+                    import logging
+                    logger = logging.getLogger(__name__)
                     
-                    messages.success(request, f'Успешно начислено {reason.coins} AC ученику {student.get_full_name() or student.username}')
+                    try:
+                        logger.info(f"Создание награды: student_id={student.id}, teacher_id={request.user.id}, reason_id={reason.id}, amount={reason.coins}")
+                        
+                        award = CoinAward.objects.create(
+                            student=student,
+                            teacher=request.user,
+                            reason=reason,
+                            amount=reason.coins,
+                            comment=comment
+                        )
+                        
+                        logger.info(f"Награда создана успешно: award_id={award.id}")
+                        messages.success(request, f'Успешно начислено {reason.coins} AC ученику {student.get_full_name() or student.username}')
+                        
+                    except Exception as e:
+                        logger.error(f"Ошибка при создании награды: {e}")
+                        messages.error(request, f'Ошибка при начислении: {str(e)}')
                     
                 except User.DoesNotExist:
                     messages.error(request, 'Ученик не найден')
