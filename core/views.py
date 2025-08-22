@@ -963,8 +963,12 @@ def user_management(request):
     # Получаем параметры фильтрации для учеников
     birthday_filter = request.GET.get('birthday_filter', '')
     
-    # Базовый запрос для учеников
-    students_query = User.objects.filter(role='student').select_related('profile', 'group', 'parent')
+    # Базовый запрос для учеников с фильтрацией по городу
+    students_query = User.objects.filter(role='student').select_related('profile', 'group', 'parent', 'city')
+    
+    # Фильтруем по городу администратора (если он не главный суперадмин)
+    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+        students_query = students_query.filter(city=request.user.city)
     
     # Применяем фильтр по дню рождения
     if birthday_filter == 'this_month':
@@ -998,6 +1002,7 @@ def user_management(request):
             password = request.POST.get('password')
             role = request.POST.get('role')
             group_id = request.POST.get('group')
+            city_id = request.POST.get('city')  # Получаем выбранный город
             
             try:
                 # Создаем пользователя с базовыми полями
@@ -1008,11 +1013,24 @@ def user_management(request):
                     role=role
                 )
                 
+                # Устанавливаем город
+                if city_id:
+                    try:
+                        city = City.objects.get(id=city_id)
+                        user.city = city
+                    except City.DoesNotExist:
+                        pass
+                elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+                    # Если администратор города создает пользователя, автоматически устанавливаем его город
+                    user.city = request.user.city
+                
                 # Если создается администратор, устанавливаем is_superuser
                 if role == 'admin':
                     user.is_superuser = True
                     user.is_staff = True
-                    user.save()
+                
+                # Сохраняем изменения города и роли
+                user.save()
                 
                 # Если создается ученик, добавляем дополнительные поля
                 if role == 'student':
@@ -1222,13 +1240,28 @@ def user_management(request):
             except Exception as e:
                 messages.error(request, f'Ошибка при удалении группы: {str(e)}')
     
+    # Фильтруем учителей и группы по городу администратора
+    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+        # Администратор города видит только учителей своего города
+        teachers_query = User.objects.filter(role='teacher', cities=request.user.city).order_by('username')
+        # И только группы школ своего города
+        groups_query = Group.objects.filter(school__city=request.user.city).select_related('teacher', 'school')
+        # И только родителей учеников своего города
+        parents_query = Parent.objects.filter(students__city=request.user.city).distinct().order_by('full_name')
+    else:
+        # Главный суперадмин видит всех
+        teachers_query = User.objects.filter(role='teacher').order_by('username')
+        groups_query = Group.objects.all().select_related('teacher', 'school')
+        parents_query = Parent.objects.all().order_by('full_name')
+    
     context = {
         'admins': User.objects.filter(role='admin').order_by('username'),
-        'teachers': User.objects.filter(role='teacher').order_by('username'),
+        'teachers': teachers_query,
         'students': students_query,
-        'groups': Group.objects.all().select_related('teacher'),
-        'parents': Parent.objects.all().order_by('full_name'),
+        'groups': groups_query,
+        'parents': parents_query,
         'birthday_filter': birthday_filter,
+        'cities': City.objects.all().order_by('name'),  # Для выбора города при создании пользователей
     }
     return render(request, 'core/user_management.html', context)
 
