@@ -46,7 +46,7 @@ body {
 .nav-link:hover {
     color: white !important;
     background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
+    /* transform: translateY(-1px); - УБРАЛИ СМЕЩЕНИЕ */
 }
 
 /* Заголовки */
@@ -56,18 +56,18 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 1rem;
 }
 
-/* Карточки */
+/* Карточки - БЕЗ РАЗДРАЖАЮЩИХ СМЕЩЕНИЙ */
 .card {
     background-color: white;
     border: none;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(106, 61, 159, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: box-shadow 0.2s ease; /* УБРАЛИ transform из transition */
     overflow: hidden;
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); - УБРАЛИ СМЕЩЕНИЕ */
     box-shadow: 0 8px 24px rgba(106, 61, 159, 0.12);
 }
 
@@ -94,7 +94,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); - УБРАЛИ СМЕЩЕНИЕ КНОПОК */
 }
 
 .btn-primary {
@@ -180,7 +180,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .list-group-item:hover {
     background-color: rgba(106, 61, 159, 0.05);
-    transform: translateX(5px);
+    /* transform: translateX(5px); - УБРАЛИ СМЕЩЕНИЕ СПИСКОВ */
 }
 
 /* Модальные окна */
