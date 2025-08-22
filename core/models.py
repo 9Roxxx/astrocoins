@@ -245,10 +245,24 @@ class Purchase(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    delivered = models.BooleanField(default=False, verbose_name='Товар выдан')
+    delivered_date = models.DateTimeField(null=True, blank=True, verbose_name='Дата выдачи')
+    notes = models.TextField(blank=True, verbose_name='Примечания к выдаче')
     created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'Покупка'
+        verbose_name_plural = 'Покупки'
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
+    
+    def mark_as_delivered(self):
+        """Отметить товар как выданный"""
+        self.delivered = True
+        self.delivered_date = timezone.now()
+        self.save()
 
 class City(models.Model):
     """

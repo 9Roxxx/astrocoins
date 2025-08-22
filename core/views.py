@@ -505,6 +505,83 @@ def groups(request):
                     messages.error(request, 'Ученик не найден')
                 except Exception as e:
                     messages.error(request, 'Произошла ошибка при начислении AstroCoins')
+            
+            elif action == 'award_group':
+                # Начисление астрокоинов всей группе
+                group_id = request.POST.get('group_id')
+                reason_id = request.POST.get('reason_id')
+                comment = request.POST.get('comment', '')
+                
+                try:
+                    group = Group.objects.get(id=group_id)
+                    reason = AwardReason.objects.get(id=reason_id)
+                    
+                    # Проверяем права доступа
+                    if not (request.user.is_superuser or group.teacher == request.user):
+                        messages.error(request, 'У вас нет прав для начисления астрокоинов этой группе')
+                        return redirect('groups')
+                    
+                    # Получаем всех учеников группы
+                    students = group.students.filter(role='student')
+                    
+                    if not students.exists():
+                        messages.warning(request, 'В группе нет учеников для начисления')
+                        return redirect('groups')
+                    
+                    # Начисляем астрокоины каждому ученику
+                    awards_count = 0
+                    for student in students:
+                        CoinAward.objects.create(
+                            student=student,
+                            teacher=request.user,
+                            reason=reason,
+                            amount=reason.coins,
+                            comment=comment
+                        )
+                        awards_count += 1
+                    
+                    messages.success(request, f'Успешно начислено {reason.coins} AC каждому из {awards_count} учеников группы "{group.name}"')
+                    
+                except Group.DoesNotExist:
+                    messages.error(request, 'Группа не найдена')
+                except AwardReason.DoesNotExist:
+                    messages.error(request, 'Причина начисления не найдена')
+                except Exception as e:
+                    messages.error(request, f'Произошла ошибка при начислении: {str(e)}')
+            
+            elif action == 'award_student':
+                # Начисление астрокоинов индивидуальному ученику
+                student_id = request.POST.get('student_id')
+                reason_id = request.POST.get('reason_id')
+                comment = request.POST.get('comment', '')
+                
+                try:
+                    student = User.objects.get(id=student_id, role='student')
+                    reason = AwardReason.objects.get(id=reason_id)
+                    
+                    # Проверяем права доступа
+                    if not (request.user.is_superuser or 
+                           (student.group and student.group.teacher == request.user)):
+                        messages.error(request, 'У вас нет прав для начисления астрокоинов этому ученику')
+                        return redirect('groups')
+                    
+                    # Создаем награду
+                    CoinAward.objects.create(
+                        student=student,
+                        teacher=request.user,
+                        reason=reason,
+                        amount=reason.coins,
+                        comment=comment
+                    )
+                    
+                    messages.success(request, f'Успешно начислено {reason.coins} AC ученику {student.get_full_name() or student.username}')
+                    
+                except User.DoesNotExist:
+                    messages.error(request, 'Ученик не найден')
+                except AwardReason.DoesNotExist:
+                    messages.error(request, 'Причина начисления не найдена')
+                except Exception as e:
+                    messages.error(request, f'Произошла ошибка при начислении: {str(e)}')
         
         # Получаем шаблоны начислений для учителей
         from .models import AwardReason
@@ -513,7 +590,8 @@ def groups(request):
         context.update({
             'teacher_groups': groups,
             'award_reasons': award_reasons,
-            'is_teacher': True
+            'is_teacher': True,
+            'is_superuser': request.user.is_superuser
         })
     else:
         # Для ученика показываем его группу и статистику
@@ -671,21 +749,42 @@ def activity_monitoring(request):
     if not (request.user.is_teacher() or request.user.is_superuser):
         raise PermissionDenied("Только преподаватели и администраторы могут просматривать активность")
     
+    # Получаем параметры фильтрации
+    group_filter = request.GET.get('group_filter', '')
+    hide_delivered = request.GET.get('hide_delivered', '') == 'on'
+    
     # Определяем какие пользователи доступны для просмотра
     if request.user.is_superuser:
         # Администратор видит всех
         available_users = User.objects.filter(role='student').select_related('profile', 'group')
-        purchases = Purchase.objects.all().select_related('user', 'product', 'user__profile', 'user__group').order_by('-created_at')
-        transfers = Transaction.objects.filter(transaction_type='TRANSFER').select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group').order_by('-created_at')
+        purchases = Purchase.objects.all().select_related('user', 'product', 'user__profile', 'user__group')
+        transfers = Transaction.objects.filter(transaction_type='TRANSFER').select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group')
+        available_groups = Group.objects.all().order_by('name')
     else:
         # Учитель видит только своих учеников
         available_users = User.objects.filter(role='student', group__teacher=request.user).select_related('profile', 'group')
-        purchases = Purchase.objects.filter(user__group__teacher=request.user).select_related('user', 'product', 'user__profile', 'user__group').order_by('-created_at')
+        purchases = Purchase.objects.filter(user__group__teacher=request.user).select_related('user', 'product', 'user__profile', 'user__group')
         transfers = Transaction.objects.filter(
             transaction_type='TRANSFER'
         ).filter(
             Q(sender__group__teacher=request.user) | Q(receiver__group__teacher=request.user)
-        ).select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group').order_by('-created_at')
+        ).select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group')
+        available_groups = Group.objects.filter(teacher=request.user).order_by('name')
+    
+    # Применяем фильтр по группе
+    if group_filter:
+        purchases = purchases.filter(user__group_id=group_filter)
+        transfers = transfers.filter(
+            Q(sender__group_id=group_filter) | Q(receiver__group_id=group_filter)
+        )
+    
+    # Фильтр для скрытия выданных товаров
+    if hide_delivered:
+        purchases = purchases.filter(delivered=False)
+    
+    # Сортировка по дате
+    purchases = purchases.order_by('-created_at')
+    transfers = transfers.order_by('-created_at')
     
     # Пагинация для покупок
     purchases_paginator = Paginator(purchases, 20)
@@ -699,16 +798,86 @@ def activity_monitoring(request):
     
     context = {
         'available_users': available_users,
+        'available_groups': available_groups,
         'purchases': purchases,
         'transfers': transfers,
         'is_superuser': request.user.is_superuser,
+        'group_filter': group_filter,
+        'hide_delivered': hide_delivered,
     }
     return render(request, 'core/activity_monitoring.html', context)
+
+@login_required
+def mark_purchase_delivered(request, purchase_id):
+    """API endpoint для отметки товара как выданного"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Недостаточно прав'})
+    
+    if request.method == 'POST':
+        try:
+            purchase = Purchase.objects.get(id=purchase_id)
+            purchase.mark_as_delivered()
+            return JsonResponse({'success': True})
+        except Purchase.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Покупка не найдена'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Неверный метод запроса'})
+
+@login_required
+def mark_purchase_not_delivered(request, purchase_id):
+    """API endpoint для отмены выдачи товара"""
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Недостаточно прав'})
+    
+    if request.method == 'POST':
+        try:
+            purchase = Purchase.objects.get(id=purchase_id)
+            purchase.delivered = False
+            purchase.delivered_date = None
+            purchase.save()
+            return JsonResponse({'success': True})
+        except Purchase.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Покупка не найдена'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Неверный метод запроса'})
 
 @login_required
 def user_management(request):
     if not request.user.is_superuser:
         raise PermissionDenied("Только администраторы могут управлять пользователями")
+    
+    # Получаем параметры фильтрации для учеников
+    birthday_filter = request.GET.get('birthday_filter', '')
+    
+    # Базовый запрос для учеников
+    students_query = User.objects.filter(role='student').select_related('profile', 'group', 'parent')
+    
+    # Применяем фильтр по дню рождения
+    if birthday_filter == 'this_month':
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        # Получаем всех учеников, у которых день рождения в этом месяце
+        students_query = students_query.filter(
+            birth_date__month=now.month,
+            birth_date__isnull=False
+        ).order_by('birth_date__day')
+    elif birthday_filter == 'next_month':
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        next_month = now.month + 1 if now.month < 12 else 1
+        next_year = now.year if now.month < 12 else now.year + 1
+        # Получаем всех учеников, у которых день рождения в следующем месяце
+        students_query = students_query.filter(
+            birth_date__month=next_month,
+            birth_date__year__lte=next_year,
+            birth_date__isnull=False
+        ).order_by('birth_date__day')
+    else:
+        students_query = students_query.order_by('username')
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -737,15 +906,25 @@ def user_management(request):
                 
                 # Если создается ученик, добавляем дополнительные поля
                 if role == 'student':
-                    birth_date = request.POST.get('birth_date')
+                    birth_day = request.POST.get('birth_day')
+                    birth_month = request.POST.get('birth_month')
+                    birth_year = request.POST.get('birth_year')
                     parent_id = request.POST.get('parent')
                     
-                    if not birth_date:
+                    if not birth_day or not birth_month or not birth_year:
                         user.delete()
-                        messages.error(request, 'Для ученика необходимо указать дату рождения')
+                        messages.error(request, 'Для ученика необходимо указать полную дату рождения (день, месяц, год)')
                         return redirect('user_management')
                     
-                    user.birth_date = birth_date
+                    # Формируем дату из отдельных полей
+                    try:
+                        from datetime import date
+                        birth_date = date(int(birth_year), int(birth_month), int(birth_day))
+                        user.birth_date = birth_date
+                    except ValueError:
+                        user.delete()
+                        messages.error(request, 'Некорректная дата рождения')
+                        return redirect('user_management')
                     
                     # Привязываем родителя, если выбран
                     if parent_id:
@@ -791,15 +970,24 @@ def user_management(request):
                     user.is_staff = False
                 
                 if role == 'student':
-                    birth_date = request.POST.get('birth_date')
+                    birth_day = request.POST.get('birth_day')
+                    birth_month = request.POST.get('birth_month')
+                    birth_year = request.POST.get('birth_year')
                     parent_id = request.POST.get('parent')
                     balance = request.POST.get('balance')
                     
-                    if not birth_date:
-                        messages.error(request, 'Для ученика необходимо указать дату рождения')
+                    # Формируем дату из отдельных полей, если все поля заполнены
+                    if birth_day and birth_month and birth_year:
+                        try:
+                            from datetime import date
+                            birth_date = date(int(birth_year), int(birth_month), int(birth_day))
+                            user.birth_date = birth_date
+                        except ValueError:
+                            messages.error(request, 'Некорректная дата рождения')
+                            return redirect('user_management')
+                    elif not birth_day or not birth_month or not birth_year:
+                        messages.error(request, 'Для ученика необходимо указать полную дату рождения (день, месяц, год)')
                         return redirect('user_management')
-                    
-                    user.birth_date = birth_date
                     
                     # Обновляем родителя
                     if parent_id:
@@ -927,9 +1115,10 @@ def user_management(request):
     context = {
         'admins': User.objects.filter(role='admin').order_by('username'),
         'teachers': User.objects.filter(role='teacher').order_by('username'),
-        'students': User.objects.filter(role='student').order_by('username'),
+        'students': students_query,
         'groups': Group.objects.all().select_related('teacher'),
-        'parents': Parent.objects.all().order_by('full_name')
+        'parents': Parent.objects.all().order_by('full_name'),
+        'birthday_filter': birthday_filter,
     }
     return render(request, 'core/user_management.html', context)
 

@@ -25,6 +25,53 @@
         </div>
     </div>
 
+    <!-- Панель фильтров -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-filter me-2"></i>Фильтры
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="group_filter" class="form-label">Группа</label>
+                            <select class="form-select" id="group_filter" name="group_filter">
+                                <option value="">Все группы</option>
+                                {% for group in available_groups %}
+                                    <option value="{{ group.id }}" {% if group_filter == group.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ group.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="hide_delivered" name="hide_delivered" 
+                                       {% if hide_delivered %}checked{% endif %}>
+                                <label class="form-check-label" for="hide_delivered">
+                                    <i class="fas fa-eye-slash me-1"></i>Скрыть выданные товары
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-search me-1"></i>Применить фильтры
+                                </button>
+                                <a href="{% url 'activity_monitoring' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Сбросить
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Навигационные вкладки -->
     <ul class="nav nav-tabs mb-4" id="activityTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -60,7 +107,11 @@
                                         <th>Группа</th>
                                         <th>Товар</th>
                                         <th>Сумма</th>
+                                        <th>Статус</th>
                                         <th>Дата</th>
+                                        {% if is_superuser %}
+                                        <th>Действия</th>
+                                        {% endif %}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -100,11 +151,42 @@
                                             </span>
                                         </td>
                                         <td>
+                                            {% if purchase.delivered %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Выдан
+                                                </span>
+                                                {% if purchase.delivered_date %}
+                                                    <br><small class="text-muted">{{ purchase.delivered_date|date:"d.m.Y H:i" }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock me-1"></i>Ожидает выдачи
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
                                             <small>
                                                 <i class="far fa-clock me-1"></i>
                                                 {{ purchase.created_at|date:"d.m.Y H:i" }}
                                             </small>
                                         </td>
+                                        {% if is_superuser %}
+                                        <td>
+                                            {% if not purchase.delivered %}
+                                                <button class="btn btn-sm btn-success" 
+                                                        onclick="markAsDelivered({{ purchase.id }})"
+                                                        title="Отметить как выданный">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-secondary" 
+                                                        onclick="markAsNotDelivered({{ purchase.id }})"
+                                                        title="Отменить выдачу">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                        {% endif %}
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -326,5 +408,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Функции для управления статусом выдачи товаров
+function markAsDelivered(purchaseId) {
+    if (confirm('Отметить товар как выданный?')) {
+        fetch(`/api/purchase/${purchaseId}/deliver/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Произошла ошибка: ' + error);
+        });
+    }
+}
+
+function markAsNotDelivered(purchaseId) {
+    if (confirm('Отменить выдачу товара?')) {
+        fetch(`/api/purchase/${purchaseId}/undeliver/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Произошла ошибка: ' + error);
+        });
+    }
+}
 </script>
 {% endblock %}

@@ -133,6 +133,35 @@
 
                                 <!-- Ученики -->
                                 <div class="tab-pane fade" id="students">
+                                    <!-- Фильтр по дню рождения -->
+                                    <div class="mb-3">
+                                        <div class="card">
+                                            <div class="card-body py-2">
+                                                <form method="get" class="row g-2 align-items-center">
+                                                    <div class="col-md-4">
+                                                        <label for="birthday_filter" class="form-label mb-0">Фильтр по дню рождения:</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <select class="form-select form-select-sm" id="birthday_filter" name="birthday_filter">
+                                                            <option value="">Все ученики</option>
+                                                            <option value="this_month" {% if birthday_filter == 'this_month' %}selected{% endif %}>
+                                                                <i class="fas fa-birthday-cake me-1"></i>Дни рождения в этом месяце
+                                                            </option>
+                                                            <option value="next_month" {% if birthday_filter == 'next_month' %}selected{% endif %}>
+                                                                <i class="fas fa-gift me-1"></i>Дни рождения в следующем месяце
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-filter me-1"></i>Применить
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="list-group">
                                         {% for user in students %}
                                         <div class="list-group-item">
@@ -148,6 +177,13 @@
                                                         <small class="text-muted">
                                                             Баланс: {{ user.profile.astrocoins }} AC
                                                         </small>
+                                                        {% if user.birth_date %}
+                                                            <br>
+                                                            <small class="text-info">
+                                                                <i class="fas fa-birthday-cake me-1"></i>
+                                                                Дата рождения: {{ user.birth_date|date:"d.m.Y" }}
+                                                            </small>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                                 <div class="btn-group">
@@ -287,13 +323,56 @@
                         </div>
                         <div id="studentFields" style="display: none;">
                             <div class="mb-3">
-                                <label for="birth_date" class="form-label">Дата рождения</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar"></i>
-                                    </span>
-                                    <input type="date" class="form-control" id="birth_date" name="birth_date">
+                                <label class="form-label">Дата рождения</label>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-day"></i>
+                                            </span>
+                                            <select class="form-select" id="birth_day" name="birth_day" required>
+                                                <option value="">День</option>
+                                                {% for day in "123456789012345678901234567890123"|make_list %}
+                                                    {% if forloop.counter <= 31 %}
+                                                        <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </span>
+                                            <select class="form-select" id="birth_month" name="birth_month" required>
+                                                <option value="">Месяц</option>
+                                                <option value="1">Январь</option>
+                                                <option value="2">Февраль</option>
+                                                <option value="3">Март</option>
+                                                <option value="4">Апрель</option>
+                                                <option value="5">Май</option>
+                                                <option value="6">Июнь</option>
+                                                <option value="7">Июль</option>
+                                                <option value="8">Август</option>
+                                                <option value="9">Сентябрь</option>
+                                                <option value="10">Октябрь</option>
+                                                <option value="11">Ноябрь</option>
+                                                <option value="12">Декабрь</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar"></i>
+                                            </span>
+                                            <input type="number" class="form-control" id="birth_year" name="birth_year" 
+                                                   placeholder="Год" min="2000" max="2025" required>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="form-text">Выберите день, месяц и введите год рождения</div>
                             </div>
                             
                             <div class="mb-3">
@@ -400,13 +479,56 @@
                         </div>
                         <div id="editStudentFields" style="display: none;">
                             <div class="mb-3">
-                                <label for="editBirthDate" class="form-label">Дата рождения</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar"></i>
-                                    </span>
-                                    <input type="date" class="form-control" id="editBirthDate" name="birth_date">
+                                <label class="form-label">Дата рождения</label>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-day"></i>
+                                            </span>
+                                            <select class="form-select" id="editBirthDay" name="birth_day">
+                                                <option value="">День</option>
+                                                {% for day in "123456789012345678901234567890123"|make_list %}
+                                                    {% if forloop.counter <= 31 %}
+                                                        <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </span>
+                                            <select class="form-select" id="editBirthMonth" name="birth_month">
+                                                <option value="">Месяц</option>
+                                                <option value="1">Январь</option>
+                                                <option value="2">Февраль</option>
+                                                <option value="3">Март</option>
+                                                <option value="4">Апрель</option>
+                                                <option value="5">Май</option>
+                                                <option value="6">Июнь</option>
+                                                <option value="7">Июль</option>
+                                                <option value="8">Август</option>
+                                                <option value="9">Сентябрь</option>
+                                                <option value="10">Октябрь</option>
+                                                <option value="11">Ноябрь</option>
+                                                <option value="12">Декабрь</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar"></i>
+                                            </span>
+                                            <input type="number" class="form-control" id="editBirthYear" name="birth_year" 
+                                                   placeholder="Год" min="2000" max="2025">
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="form-text">Выберите день, месяц и введите год рождения</div>
                             </div>
                             
                             <div class="mb-3">
@@ -714,7 +836,9 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
     function toggleEditStudentFields(isStudent) {
         editStudentFields.style.display = isStudent ? 'block' : 'none';
         if (!isStudent) {
-            document.getElementById('editBirthDate').value = '';
+            document.getElementById('editBirthDay').value = '';
+            document.getElementById('editBirthMonth').value = '';
+            document.getElementById('editBirthYear').value = '';
             document.getElementById('editParent').value = '';
             document.getElementById('editParentFullName').value = '';
             document.getElementById('editParentPhone').value = '';
@@ -725,7 +849,20 @@ function showEditUser(userId, username, email, role, groupId, birthDate, parentF
     
     // Заполняем поля ученика, если они есть
     if (role === 'student') {
-        document.getElementById('editBirthDate').value = birthDate || '';
+        // Разбираем дату рождения на компоненты
+        if (birthDate && birthDate !== '') {
+            const dateParts = birthDate.split('-');
+            if (dateParts.length === 3) {
+                document.getElementById('editBirthYear').value = dateParts[0];
+                document.getElementById('editBirthMonth').value = parseInt(dateParts[1], 10);
+                document.getElementById('editBirthDay').value = parseInt(dateParts[2], 10);
+            }
+        } else {
+            document.getElementById('editBirthDay').value = '';
+            document.getElementById('editBirthMonth').value = '';
+            document.getElementById('editBirthYear').value = '';
+        }
+        
         document.getElementById('editParent').value = parentId || '';
         // Заполняем скрытые поля для совместимости
         document.getElementById('editParentFullName').value = parentFullName || '';

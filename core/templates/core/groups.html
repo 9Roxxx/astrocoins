@@ -96,6 +96,14 @@
                                                     data-bs-toggle="modal" data-bs-target="#awardGroupModal">
                                                 <i class="fas fa-coins me-1"></i>Начислить
                                             </button>
+                                            {% if is_superuser %}
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    onclick="showDeleteGroupModal({{ group.id }}, '{{ group.name }}')"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteGroupModal"
+                                                    title="Удалить группу">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -258,6 +266,78 @@
         </div>
     </div>
 
+    <!-- Модальное окно удаления группы -->
+    <div class="modal fade" id="deleteGroupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Удаление группы</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'user_management' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_group">
+                    <input type="hidden" id="deleteGroupId" name="group_id">
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Внимание!</strong> Это действие необратимо.
+                        </div>
+                        <p>Вы действительно хотите удалить группу <strong id="deleteGroupName"></strong>?</p>
+                        <p class="text-muted">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Все ученики будут откреплены от группы, но их аккаунты и данные сохранятся.
+                            </small>
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>Удалить группу
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно начисления индивидуальному ученику -->
+    <div class="modal fade" id="awardStudentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Начислить астрокоины ученику</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="award_student">
+                    <input type="hidden" id="awardStudentId" name="student_id">
+                    <div class="modal-body">
+                        <p>Ученик: <strong id="awardStudentName"></strong></p>
+                        <div class="mb-3">
+                            <label for="awardStudentReason" class="form-label">Причина начисления</label>
+                            <select class="form-select" id="awardStudentReason" name="reason_id" required>
+                                {% for reason in award_reasons %}
+                                <option value="{{ reason.id }}">{{ reason.name }} ({{ reason.coins }} AC)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="awardStudentComment" class="form-label">Комментарий</label>
+                            <textarea class="form-control" id="awardStudentComment" name="comment" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-success">Начислить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {% else %}
     <!-- Интерфейс студента -->
     <div class="row">
@@ -405,6 +485,12 @@ function viewGroupStudents(groupId) {
                                 </span>
                                 <br>
                                 <small class="text-muted">С ${student.date_joined}</small>
+                                <br>
+                                <button class="btn btn-sm btn-success mt-1" 
+                                        onclick="showAwardStudentModal(${student.id}, '${student.full_name}')"
+                                        data-bs-toggle="modal" data-bs-target="#awardStudentModal">
+                                    <i class="fas fa-plus me-1"></i>Начислить
+                                </button>
                             </div>
                         </div>
                     `;
@@ -427,6 +513,24 @@ function viewGroupStudents(groupId) {
 function showAwardGroupModal(groupId, groupName) {
     document.getElementById('awardGroupId').value = groupId;
     document.getElementById('awardGroupName').textContent = groupName;
+}
+
+// Функция для показа модального окна начисления индивидуальному ученику
+function showAwardStudentModal(studentId, studentName) {
+    document.getElementById('awardStudentId').value = studentId;
+    document.getElementById('awardStudentName').textContent = studentName;
+    
+    // Закрываем модальное окно с учениками чтобы показать окно начисления
+    const studentsModal = bootstrap.Modal.getInstance(document.getElementById('studentsModal'));
+    if (studentsModal) {
+        studentsModal.hide();
+    }
+}
+
+// Функция для показа модального окна удаления группы
+function showDeleteGroupModal(groupId, groupName) {
+    document.getElementById('deleteGroupId').value = groupId;
+    document.getElementById('deleteGroupName').textContent = groupName;
 }
 </script>
 {% endblock %}
