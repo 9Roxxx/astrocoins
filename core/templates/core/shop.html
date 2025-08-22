@@ -282,6 +282,21 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="available_cities" class="form-label">Доступен в городах</label>
+                            <select class="form-select" id="available_cities" name="available_cities" multiple size="4">
+                                {% if cities %}
+                                    {% for city in cities %}
+                                    <option value="{{ city.id }}">{{ city.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                            <div class="form-text">
+                                💡 Если не выбрать города, товар будет доступен только в вашем городе.
+                                Удерживайте Ctrl (Cmd на Mac) для выбора нескольких городов.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="image" class="form-label">Изображение</label>
                             <input type="file" class="form-control" id="image" name="image" accept="image/*">
                         </div>
@@ -363,6 +378,21 @@
                         <div class="mb-3">
                             <label for="editStock" class="form-label">Количество</label>
                             <input type="number" class="form-control" id="editStock" name="stock" min="0" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editAvailableCities" class="form-label">Доступен в городах</label>
+                            <select class="form-select" id="editAvailableCities" name="available_cities" multiple size="4">
+                                {% if cities %}
+                                    {% for city in cities %}
+                                    <option value="{{ city.id }}">{{ city.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                            <div class="form-text">
+                                💡 Если не выбрать города, товар будет доступен только в вашем городе.
+                                Удерживайте Ctrl (Cmd на Mac) для выбора нескольких городов.
+                            </div>
                         </div>
 
                         <div class="mb-3">

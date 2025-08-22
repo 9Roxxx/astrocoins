@@ -113,7 +113,7 @@ def add_product(request):
             )
             
             # Обрабатываем выбранные города
-            selected_cities = request.POST.getlist('cities')  # Получаем список выбранных городов
+            selected_cities = request.POST.getlist('available_cities')  # Получаем список выбранных городов
             if selected_cities:
                 # Добавляем выбранные города
                 cities = City.objects.filter(id__in=selected_cities)
@@ -151,10 +151,13 @@ def edit_product(request):
             product.featured = request.POST.get('featured', False) == 'on'
             
             # Обрабатываем выбранные города
-            selected_cities = request.POST.getlist('cities')
+            selected_cities = request.POST.getlist('available_cities')
             if selected_cities:
                 cities = City.objects.filter(id__in=selected_cities)
                 product.available_cities.set(cities)
+            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+                # Если администратор города не выбрал города, автоматически добавляем его город
+                product.available_cities.set([request.user.city])
             
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
