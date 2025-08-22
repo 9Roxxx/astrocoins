@@ -517,7 +517,6 @@ def groups(request):
                 comment = request.POST.get('comment', '')
                 
                 try:
-                    from .models import AwardReason
                     group = Group.objects.get(id=group_id)
                     reason = AwardReason.objects.get(id=reason_id)
                     
@@ -572,7 +571,6 @@ def groups(request):
                 comment = request.POST.get('comment', '')
                 
                 try:
-                    from .models import AwardReason
                     student = User.objects.get(id=student_id, role='student')
                     reason = AwardReason.objects.get(id=reason_id)
                     
