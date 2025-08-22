@@ -608,6 +608,53 @@ def groups(request):
                     messages.error(request, 'Причина начисления не найдена')
                 except Exception as e:
                     messages.error(request, f'Произошла ошибка при начислении: {str(e)}')
+            
+            elif action == 'add_student_to_group':
+                # Добавление ученика в группу (только для администраторов)
+                if request.user.is_superuser:
+                    student_id = request.POST.get('student_id')
+                    group_id = request.POST.get('group_id')
+                    
+                    try:
+                        student = User.objects.get(id=student_id, role='student')
+                        group = Group.objects.get(id=group_id)
+                        
+                        # Проверяем что ученик еще не в группе
+                        if student.group:
+                            messages.warning(request, f'Ученик {student.get_full_name() or student.username} уже состоит в группе "{student.group.name}"')
+                        else:
+                            student.group = group
+                            student.save()
+                            messages.success(request, f'Ученик {student.get_full_name() or student.username} добавлен в группу "{group.name}"')
+                    
+                    except User.DoesNotExist:
+                        messages.error(request, 'Ученик не найден')
+                    except Group.DoesNotExist:
+                        messages.error(request, 'Группа не найдена')
+                    except Exception as e:
+                        messages.error(request, f'Ошибка при добавлении ученика в группу: {str(e)}')
+                else:
+                    messages.error(request, 'Недостаточно прав для добавления учеников в группу')
+            
+            elif action == 'remove_student_from_group':
+                # Удаление ученика из группы (только для администраторов)
+                if request.user.is_superuser:
+                    student_id = request.POST.get('student_id')
+                    
+                    try:
+                        student = User.objects.get(id=student_id, role='student')
+                        group_name = student.group.name if student.group else 'Без группы'
+                        
+                        student.group = None
+                        student.save()
+                        messages.success(request, f'Ученик {student.get_full_name() or student.username} удален из группы "{group_name}"')
+                    
+                    except User.DoesNotExist:
+                        messages.error(request, 'Ученик не найден')
+                    except Exception as e:
+                        messages.error(request, f'Ошибка при удалении ученика из группы: {str(e)}')
+                else:
+                    messages.error(request, 'Недостаточно прав для удаления учеников из группы')
         
         # Получаем шаблоны начислений для учителей
         award_reasons = AwardReason.objects.all().order_by('coins')
@@ -622,6 +669,13 @@ def groups(request):
             'schools': School.objects.all().order_by('city__name', 'name'),
             'courses': Course.objects.filter(is_active=True).order_by('school__name', 'name'),
         })
+        
+        # Для администраторов добавляем список всех учеников для управления группами
+        if request.user.is_superuser:
+            context.update({
+                'all_students': User.objects.filter(role='student').select_related('group').order_by('username'),
+                'students_without_group': User.objects.filter(role='student', group=None).order_by('username'),
+            })
     else:
         # Для ученика показываем его группу и статистику
         if request.user.group:
