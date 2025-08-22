@@ -120,7 +120,7 @@ def add_product(request):
                 # Добавляем выбранные города
                 cities = City.objects.filter(id__in=selected_cities)
                 product.available_cities.set(cities)
-            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
                 # Если администратор города не выбрал города, автоматически добавляем его город
                 product.available_cities.add(request.user.city)
             
@@ -157,7 +157,7 @@ def edit_product(request):
             if selected_cities:
                 cities = City.objects.filter(id__in=selected_cities)
                 product.available_cities.set(cities)
-            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
                 # Если администратор города не выбрал города, автоматически добавляем его город
                 product.available_cities.set([request.user.city])
             
@@ -995,7 +995,7 @@ def mark_purchase_not_delivered(request, purchase_id):
 
 @login_required
 def user_management(request):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
         raise PermissionDenied("Только администраторы могут управлять пользователями")
     
     # Получаем параметры фильтрации для учеников
@@ -1005,7 +1005,7 @@ def user_management(request):
     students_query = User.objects.filter(role='student').select_related('profile', 'group', 'parent', 'city')
     
     # Фильтруем по городу администратора (если он не главный суперадмин)
-    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
         students_query = students_query.filter(city=request.user.city)
     
     # Применяем фильтр по дню рождения
@@ -1058,12 +1058,12 @@ def user_management(request):
                         user.city = city
                     except City.DoesNotExist:
                         pass
-                elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+                elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
                     # Если администратор города создает пользователя, автоматически устанавливаем его город
                     user.city = request.user.city
                 
                 # Если создается администратор, устанавливаем is_superuser
-                if role == 'admin':
+                if role == 'city_admin':
                     user.is_superuser = True
                     user.is_staff = True
                 
@@ -1128,7 +1128,7 @@ def user_management(request):
                 user.role = role
                 
                 # Обновляем права администратора
-                if role == 'admin':
+                if role == 'city_admin':
                     user.is_superuser = True
                     user.is_staff = True
                 else:
@@ -1197,7 +1197,7 @@ def user_management(request):
                         user.group = group
                     else:
                         user.group = None
-                elif role == 'admin':
+                elif role == 'city_admin':
                     # Администраторы не имеют полей ученика
                     user.birth_date = None
                     user.parent_full_name = ''
@@ -1279,7 +1279,7 @@ def user_management(request):
                 messages.error(request, f'Ошибка при удалении группы: {str(e)}')
     
     # Фильтруем учителей и группы по городу администратора
-    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
         # Администратор города видит только учителей своего города
         teachers_query = User.objects.filter(role='teacher', cities=request.user.city).order_by('username')
         # И только группы школ своего города
@@ -1293,7 +1293,7 @@ def user_management(request):
         parents_query = Parent.objects.all().order_by('full_name')
     
     context = {
-        'admins': User.objects.filter(role='admin').order_by('username'),
+        'admins': User.objects.filter(role='city_admin').order_by('username'),
         'teachers': teachers_query,
         'students': students_query,
         'groups': groups_query,
@@ -1305,7 +1305,7 @@ def user_management(request):
 
 @login_required
 def add_category(request):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
         raise PermissionDenied("Только администратор может добавлять категории товаров")
     
     if request.method == 'POST':
@@ -1325,7 +1325,7 @@ def add_category(request):
 
 @login_required
 def edit_category(request):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
         raise PermissionDenied("Только администратор может редактировать категории товаров")
     
     if request.method == 'POST':
@@ -1348,7 +1348,7 @@ def edit_category(request):
 
 @login_required
 def delete_category(request):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
         raise PermissionDenied("Только администратор может удалять категории товаров")
     
     if request.method == 'POST':
@@ -1371,7 +1371,7 @@ def delete_category(request):
 
 @login_required
 def get_category(request, category_id):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
         raise PermissionDenied("Только администратор может получать данные категорий")
     
     try:
