@@ -81,6 +81,10 @@ def shop(request):
         'background_image': random_background['url'],
         'background_name': random_background['name'],
     }
+    
+    # Для администраторов добавляем список городов
+    if request.user.is_superuser:
+        context['cities'] = City.objects.all().order_by('name')
     return render(request, 'core/shop.html', context)
 
 @login_required
@@ -100,11 +104,23 @@ def add_product(request):
                 featured=request.POST.get('featured', False) == 'on'
             )
             
+            # Обрабатываем выбранные города
+            selected_cities = request.POST.getlist('cities')  # Получаем список выбранных городов
+            if selected_cities:
+                # Добавляем выбранные города
+                cities = City.objects.filter(id__in=selected_cities)
+                product.available_cities.set(cities)
+            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'admin':
+                # Если администратор города не выбрал города, автоматически добавляем его город
+                product.available_cities.add(request.user.city)
+            
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
-                product.save()
             
-            messages.success(request, f'Товар "{product.name}" успешно добавлен')
+            product.save()
+            
+            cities_names = ', '.join([city.name for city in product.available_cities.all()])
+            messages.success(request, f'Товар "{product.name}" успешно добавлен в города: {cities_names}')
         except Exception as e:
             messages.error(request, f'Ошибка при добавлении товара: {str(e)}')
         
@@ -126,11 +142,19 @@ def edit_product(request):
             product.is_digital = request.POST.get('is_digital', False) == 'on'
             product.featured = request.POST.get('featured', False) == 'on'
             
+            # Обрабатываем выбранные города
+            selected_cities = request.POST.getlist('cities')
+            if selected_cities:
+                cities = City.objects.filter(id__in=selected_cities)
+                product.available_cities.set(cities)
+            
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
             
             product.save()
-            messages.success(request, f'Товар "{product.name}" успешно обновлен')
+            
+            cities_names = ', '.join([city.name for city in product.available_cities.all()])
+            messages.success(request, f'Товар "{product.name}" успешно обновлен. Доступен в городах: {cities_names}')
         except Product.DoesNotExist:
             messages.error(request, 'Товар не найден')
         except Exception as e:
@@ -153,7 +177,8 @@ def get_product(request, product_id):
             'stock': product.stock,
             'category': product.category_id if product.category else None,
             'is_digital': product.is_digital,
-            'featured': product.featured
+            'featured': product.featured,
+            'cities': [city.id for city in product.available_cities.all()]  # ID городов для формы
         }
         return JsonResponse(data)
     except Product.DoesNotExist:
