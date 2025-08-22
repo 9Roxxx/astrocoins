@@ -63,20 +63,20 @@ def shop(request):
     if request.user.is_teacher() and not request.user.is_superuser:
         raise PermissionDenied("Преподаватели не могут совершать покупки в магазине")
     
-    # Получаем все категории
-    categories = ProductCategory.objects.all().order_by('order')
+    # Получаем категории в зависимости от роли
+    if hasattr(request.user, 'city') and request.user.city:
+        # Показываем только категории из города пользователя
+        categories = ProductCategory.objects.filter(city=request.user.city).order_by('order')
+    else:
+        # Если у пользователя нет города (главный суперадмин) - видит все
+        categories = ProductCategory.objects.all().order_by('order')
     
     # Фильтруем товары в каждой категории по городу пользователя
     for category in categories:
-        if hasattr(request.user, 'city') and request.user.city:
-            # Показываем только товары которые доступны в городе пользователя
-            # Товар доступен если в available_cities указан город пользователя
-            category.filtered_products = category.products.filter(
-                available_cities=request.user.city
-            ).order_by('-featured', '-created_at')
-        else:
-            # Если у пользователя нет города (главный суперадмин) - видит все
-            category.filtered_products = category.products.all().order_by('-featured', '-created_at')
+        # Товары уже привязаны к тому же городу что и категория
+        category.filtered_products = category.products.filter(
+            city=category.city
+        ).order_by('-featured', '-created_at')
     
     # Убираем категории без товаров ТОЛЬКО для учеников
     # Администраторы должны видеть все категории, чтобы добавлять в них товары
@@ -92,45 +92,38 @@ def shop(request):
         'background_name': random_background['name'],
     }
     
-    # Для администраторов добавляем список городов
-    if request.user.is_superuser:
-        context['cities'] = City.objects.all().order_by('name')
     return render(request, 'core/shop.html', context)
 
 @login_required
 def add_product(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied("Только администратор может добавлять товары")
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
+        raise PermissionDenied("Только администраторы могут добавлять товары")
     
     if request.method == 'POST':
         try:
+            # Автоматически привязываем к городу администратора
+            city = request.user.city if hasattr(request.user, 'city') and request.user.city else None
+            if not city and not request.user.is_superuser:
+                raise Exception("У администратора не указан город")
+            
             product = Product.objects.create(
                 name=request.POST['name'],
                 description=request.POST['description'],
                 price=request.POST['price'],
                 stock=request.POST['stock'],
                 category_id=request.POST['category'],
+                city=city,  # Автоматически привязываем к городу
                 is_digital=request.POST.get('is_digital', False) == 'on',
                 featured=request.POST.get('featured', False) == 'on'
             )
-            
-            # Обрабатываем выбранные города
-            selected_cities = request.POST.getlist('available_cities')  # Получаем список выбранных городов
-            if selected_cities:
-                # Добавляем выбранные города
-                cities = City.objects.filter(id__in=selected_cities)
-                product.available_cities.set(cities)
-            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
-                # Если администратор города не выбрал города, автоматически добавляем его город
-                product.available_cities.add(request.user.city)
             
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
             
             product.save()
             
-            cities_names = ', '.join([city.name for city in product.available_cities.all()])
-            messages.success(request, f'Товар "{product.name}" успешно добавлен в города: {cities_names}')
+            city_name = city.name if city else "без города"
+            messages.success(request, f'Товар "{product.name}" успешно добавлен в город: {city_name}')
         except Exception as e:
             messages.error(request, f'Ошибка при добавлении товара: {str(e)}')
         
@@ -138,12 +131,19 @@ def add_product(request):
 
 @login_required
 def edit_product(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied("Только администратор может редактировать товары")
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
+        raise PermissionDenied("Только администраторы могут редактировать товары")
     
     if request.method == 'POST':
         try:
             product = Product.objects.get(id=request.POST['product_id'])
+            
+            # Проверяем права доступа - администратор может редактировать только товары своего города
+            if (request.user.role == 'city_admin' and 
+                hasattr(request.user, 'city') and request.user.city and 
+                product.city != request.user.city):
+                raise PermissionDenied("Вы можете редактировать только товары своего города")
+            
             product.name = request.POST['name']
             product.description = request.POST['description']
             product.price = request.POST['price']
@@ -152,24 +152,19 @@ def edit_product(request):
             product.is_digital = request.POST.get('is_digital', False) == 'on'
             product.featured = request.POST.get('featured', False) == 'on'
             
-            # Обрабатываем выбранные города
-            selected_cities = request.POST.getlist('available_cities')
-            if selected_cities:
-                cities = City.objects.filter(id__in=selected_cities)
-                product.available_cities.set(cities)
-            elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
-                # Если администратор города не выбрал города, автоматически добавляем его город
-                product.available_cities.set([request.user.city])
+            # Город товара не изменяется - он привязан к городу администратора
             
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
             
             product.save()
             
-            cities_names = ', '.join([city.name for city in product.available_cities.all()])
-            messages.success(request, f'Товар "{product.name}" успешно обновлен. Доступен в городах: {cities_names}')
+            city_name = product.city.name if product.city else "без города"
+            messages.success(request, f'Товар "{product.name}" успешно обновлен в городе: {city_name}')
         except Product.DoesNotExist:
             messages.error(request, 'Товар не найден')
+        except PermissionDenied as e:
+            messages.error(request, str(e))
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении товара: {str(e)}')
         
@@ -177,11 +172,18 @@ def edit_product(request):
 
 @login_required
 def get_product(request, product_id):
-    if not request.user.is_superuser:
-        raise PermissionDenied("Только администратор может получать данные товаров")
+    if not (request.user.is_superuser or request.user.role == 'city_admin'):
+        raise PermissionDenied("Только администраторы могут получать данные товаров")
     
     try:
         product = Product.objects.get(id=product_id)
+        
+        # Проверяем права доступа - администратор может получать только товары своего города
+        if (request.user.role == 'city_admin' and 
+            hasattr(request.user, 'city') and request.user.city and 
+            product.city != request.user.city):
+            return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+        
         data = {
             'id': product.id,
             'name': product.name,
@@ -191,7 +193,8 @@ def get_product(request, product_id):
             'category': product.category_id if product.category else None,
             'is_digital': product.is_digital,
             'featured': product.featured,
-            'cities': [city.id for city in product.available_cities.all()]  # ID городов для формы
+            'city': product.city.id if product.city else None,  # ID города товара
+            'city_name': product.city.name if product.city else 'Без города'  # Название города
         }
         return JsonResponse(data)
     except Product.DoesNotExist:
@@ -1310,14 +1313,22 @@ def add_category(request):
     
     if request.method == 'POST':
         try:
+            # Автоматически привязываем к городу администратора
+            city = request.user.city if hasattr(request.user, 'city') and request.user.city else None
+            if not city and not request.user.is_superuser:
+                raise Exception("У администратора не указан город")
+            
             category = ProductCategory.objects.create(
                 name=request.POST['name'],
                 description=request.POST.get('description', ''),
                 icon=request.POST.get('icon', 'fas fa-cube'),
                 is_featured=request.POST.get('is_featured', False) == 'on',
-                order=int(request.POST.get('order', 0))
+                order=int(request.POST.get('order', 0)),
+                city=city  # Автоматически привязываем к городу
             )
-            messages.success(request, f'Категория "{category.name}" успешно добавлена')
+            
+            city_name = city.name if city else "без города"
+            messages.success(request, f'Категория "{category.name}" успешно добавлена в город: {city_name}')
         except Exception as e:
             messages.error(request, f'Ошибка при добавлении категории: {str(e)}')
         
@@ -1331,6 +1342,13 @@ def edit_category(request):
     if request.method == 'POST':
         try:
             category = ProductCategory.objects.get(id=request.POST['category_id'])
+            
+            # Проверяем права доступа - администратор может редактировать только категории своего города
+            if (request.user.role == 'city_admin' and 
+                hasattr(request.user, 'city') and request.user.city and 
+                category.city != request.user.city):
+                raise PermissionDenied("Вы можете редактировать только категории своего города")
+            
             category.name = request.POST['name']
             category.description = request.POST.get('description', '')
             category.icon = request.POST.get('icon', 'fas fa-cube')
@@ -1338,9 +1356,12 @@ def edit_category(request):
             category.order = int(request.POST.get('order', 0))
             category.save()
             
-            messages.success(request, f'Категория "{category.name}" успешно обновлена')
+            city_name = category.city.name if category.city else "без города"
+            messages.success(request, f'Категория "{category.name}" успешно обновлена в городе: {city_name}')
         except ProductCategory.DoesNotExist:
             messages.error(request, 'Категория не найдена')
+        except PermissionDenied as e:
+            messages.error(request, str(e))
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении категории: {str(e)}')
         
@@ -1354,16 +1375,26 @@ def delete_category(request):
     if request.method == 'POST':
         try:
             category = ProductCategory.objects.get(id=request.POST['category_id'])
+            
+            # Проверяем права доступа - администратор может удалять только категории своего города
+            if (request.user.role == 'city_admin' and 
+                hasattr(request.user, 'city') and request.user.city and 
+                category.city != request.user.city):
+                raise PermissionDenied("Вы можете удалять только категории своего города")
+            
             category_name = category.name
+            city_name = category.city.name if category.city else "без города"
             
             # Проверяем, есть ли товары в этой категории
             if category.products.exists():
                 messages.error(request, f'Нельзя удалить категорию "{category_name}", так как в ней есть товары')
             else:
                 category.delete()
-                messages.success(request, f'Категория "{category_name}" успешно удалена')
+                messages.success(request, f'Категория "{category_name}" из города {city_name} успешно удалена')
         except ProductCategory.DoesNotExist:
             messages.error(request, 'Категория не найдена')
+        except PermissionDenied as e:
+            messages.error(request, str(e))
         except Exception as e:
             messages.error(request, f'Ошибка при удалении категории: {str(e)}')
         
@@ -1376,13 +1407,21 @@ def get_category(request, category_id):
     
     try:
         category = ProductCategory.objects.get(id=category_id)
+        
+        # Проверяем права доступа - администратор может получать только категории своего города
+        if (request.user.role == 'city_admin' and 
+            hasattr(request.user, 'city') and request.user.city and 
+            category.city != request.user.city):
+            return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+        
         data = {
             'id': category.id,
             'name': category.name,
             'description': category.description,
             'icon': category.icon,
             'is_featured': category.is_featured,
-            'order': category.order
+            'order': category.order,
+            'city': category.city.id if category.city else None
         }
         return JsonResponse(data)
     except ProductCategory.DoesNotExist:

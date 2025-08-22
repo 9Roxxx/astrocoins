@@ -281,29 +281,15 @@
                             <input type="number" class="form-control" id="stock" name="stock" min="0" required>
                         </div>
 
+                        <!-- Товар автоматически привязывается к городу администратора -->
+                        {% if user.city %}
                         <div class="mb-3">
-                            <label class="form-label">Доступен в городах</label>
-                            <div class="row">
-                                {% if cities %}
-                                    {% for city in cities %}
-                                    <div class="col-md-6 col-lg-4 mb-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" 
-                                                   name="available_cities" value="{{ city.id }}" 
-                                                   id="city_{{ city.id }}">
-                                            <label class="form-check-label" for="city_{{ city.id }}">
-                                                <i class="fas fa-map-marker-alt me-1"></i>{{ city.name }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            <div class="form-text">
-                                💡 Если не выбрать города, товар будет доступен только в вашем городе.
-                                Можно выбрать несколько городов сразу.
+                            <div class="alert alert-info">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                Товар будет создан для города: <strong>{{ user.city.name }}</strong>
                             </div>
                         </div>
+                        {% endif %}
 
                         <div class="mb-3">
                             <label for="image" class="form-label">Изображение</label>
@@ -389,29 +375,15 @@
                             <input type="number" class="form-control" id="editStock" name="stock" min="0" required>
                         </div>
 
+                        <!-- Товар привязан к городу и его нельзя изменить -->
+                        {% if user.city %}
                         <div class="mb-3">
-                            <label class="form-label">Доступен в городах</label>
-                            <div class="row" id="editCitiesContainer">
-                                {% if cities %}
-                                    {% for city in cities %}
-                                    <div class="col-md-6 col-lg-4 mb-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input edit-city-checkbox" type="checkbox" 
-                                                   name="available_cities" value="{{ city.id }}" 
-                                                   id="edit_city_{{ city.id }}">
-                                            <label class="form-check-label" for="edit_city_{{ city.id }}">
-                                                <i class="fas fa-map-marker-alt me-1"></i>{{ city.name }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            <div class="form-text">
-                                💡 Если не выбрать города, товар будет доступен только в вашем городе.
-                                Можно выбрать несколько городов сразу.
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Товар привязан к городу: <strong id="productCityName">{{ user.city.name }}</strong>
                             </div>
                         </div>
+                        {% endif %}
 
                         <div class="mb-3">
                             <label for="editImage" class="form-label">Изображение</label>
@@ -502,19 +474,10 @@ function editProduct(productId) {
             document.getElementById('editIsDigital').checked = data.is_digital;
             document.getElementById('editFeatured').checked = data.featured;
             
-            // Очищаем все чекбоксы городов
-            document.querySelectorAll('.edit-city-checkbox').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-            
-            // Отмечаем города из данных товара
-            if (data.cities && data.cities.length > 0) {
-                data.cities.forEach(cityId => {
-                    const checkbox = document.getElementById(`edit_city_${cityId}`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                    }
-                });
+            // Обновляем название города товара
+            const cityNameElement = document.getElementById('productCityName');
+            if (cityNameElement && data.city_name) {
+                cityNameElement.textContent = data.city_name;
             }
             
             new bootstrap.Modal(document.getElementById('editProductModal')).show();
