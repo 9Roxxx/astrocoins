@@ -212,8 +212,10 @@ class ProductAdmin(admin.ModelAdmin):
         """Фильтрует товары для администраторов городов"""
         qs = super().get_queryset(request)
         
-        # Если пользователь - администратор города (не суперпользователь)
-        if request.user.role == 'admin' and request.user.city and not request.user.is_superuser:
+        # Если пользователь - администратор города (не главный суперпользователь)
+        if (hasattr(request.user, 'city') and request.user.city and 
+            request.user.role == 'admin' and 
+            not (request.user.is_superuser and not request.user.city)):
             # Показывать только товары доступные в городе администратора
             qs = qs.filter(available_cities=request.user.city)
         

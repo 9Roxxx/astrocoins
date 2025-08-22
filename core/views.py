@@ -63,15 +63,23 @@ def shop(request):
     if request.user.is_teacher() and not request.user.is_superuser:
         raise PermissionDenied("Преподаватели не могут совершать покупки в магазине")
     
-    # Фильтруем товары по городу ученика
-    if request.user.is_student() and request.user.city:
-        # Показываем только товары доступные в городе ученика
-        categories = ProductCategory.objects.filter(
-            products__available_cities=request.user.city
-        ).distinct().order_by('order')
-    else:
-        # Суперадмин видит все категории
-        categories = ProductCategory.objects.all().order_by('order')
+    # Получаем все категории
+    categories = ProductCategory.objects.all().order_by('order')
+    
+    # Фильтруем товары в каждой категории по городу пользователя
+    for category in categories:
+        if hasattr(request.user, 'city') and request.user.city:
+            # Показываем только товары которые доступны в городе пользователя
+            # Товар доступен если в available_cities указан город пользователя
+            category.filtered_products = category.products.filter(
+                available_cities=request.user.city
+            ).order_by('-featured', '-created_at')
+        else:
+            # Если у пользователя нет города (главный суперадмин) - видит все
+            category.filtered_products = category.products.all().order_by('-featured', '-created_at')
+    
+    # Убираем категории без товаров
+    categories = [cat for cat in categories if cat.filtered_products.exists()]
     
     # Добавляем случайный фон и для магазина
     random_background = random.choice(GAME_BACKGROUNDS)

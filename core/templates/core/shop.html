@@ -61,7 +61,7 @@
                                     style="cursor: pointer;">
                                     <i class="fas fa-chevron-down collapse-icon me-2"></i>
                                     <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
-                                    <span class="product-count text-muted ms-2">({{ category.products.all|length }})</span>
+                                    <span class="product-count text-muted ms-2">({{ category.filtered_products|length }})</span>
                                     {% if category.is_featured %}<span class="badge bg-primary">🔥 TOP</span>{% endif %}
                                 </h4>
                                 {% if user.is_superuser %}
@@ -81,7 +81,7 @@
                             </div>
                             <div class="collapse show" id="category-{{ category.id }}">
                                 <div class="row g-4">
-                                {% for product in category.products.all %}
+                                {% for product in category.filtered_products %}
                                 {% if product.available %}
                                 <div class="col-md-4 col-lg-3">
                                     <div class="card h-100 product-card">
