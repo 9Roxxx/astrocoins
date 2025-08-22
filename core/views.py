@@ -840,12 +840,18 @@ def activity_monitoring(request):
 @login_required
 def mark_purchase_delivered(request, purchase_id):
     """API endpoint для отметки товара как выданного"""
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.is_teacher()):
         return JsonResponse({'success': False, 'error': 'Недостаточно прав'})
     
     if request.method == 'POST':
         try:
             purchase = Purchase.objects.get(id=purchase_id)
+            
+            # Проверяем права доступа: учитель может отмечать выдачу только для своих учеников
+            if not request.user.is_superuser:
+                if not (purchase.user.group and purchase.user.group.teacher == request.user):
+                    return JsonResponse({'success': False, 'error': 'Вы можете отмечать выдачу только для своих учеников'})
+            
             purchase.mark_as_delivered()
             return JsonResponse({'success': True})
         except Purchase.DoesNotExist:
@@ -858,12 +864,18 @@ def mark_purchase_delivered(request, purchase_id):
 @login_required
 def mark_purchase_not_delivered(request, purchase_id):
     """API endpoint для отмены выдачи товара"""
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or request.user.is_teacher()):
         return JsonResponse({'success': False, 'error': 'Недостаточно прав'})
     
     if request.method == 'POST':
         try:
             purchase = Purchase.objects.get(id=purchase_id)
+            
+            # Проверяем права доступа: учитель может отменять выдачу только для своих учеников
+            if not request.user.is_superuser:
+                if not (purchase.user.group and purchase.user.group.teacher == request.user):
+                    return JsonResponse({'success': False, 'error': 'Вы можете отменять выдачу только для своих учеников'})
+            
             purchase.delivered = False
             purchase.delivered_date = None
             purchase.save()

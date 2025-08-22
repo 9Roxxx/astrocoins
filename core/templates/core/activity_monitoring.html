@@ -109,7 +109,7 @@
                                         <th>Сумма</th>
                                         <th>Статус</th>
                                         <th>Дата</th>
-                                        {% if is_superuser %}
+                                        {% if is_superuser or user.is_teacher %}
                                         <th>Действия</th>
                                         {% endif %}
                                     </tr>
@@ -170,7 +170,7 @@
                                                 {{ purchase.created_at|date:"d.m.Y H:i" }}
                                             </small>
                                         </td>
-                                        {% if is_superuser %}
+                                        {% if is_superuser or user.is_teacher %}
                                         <td>
                                             {% if not purchase.delivered %}
                                                 <button class="btn btn-sm btn-success" 
