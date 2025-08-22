@@ -65,31 +65,16 @@
     opacity: 1;
 }
 
-/* Эффект наведения для карточек */
+/* Эффект наведения для карточек - БЕЗ СМЕЩЕНИЯ */
 .card {
     position: relative;
     overflow: hidden;
+    transition: box-shadow 0.2s ease;
 }
 
-.card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        45deg,
-        transparent 0%,
-        rgba(106, 61, 159, 0.05) 50%,
-        transparent 100%
-    );
-    transform: translateX(-100%);
-    transition: transform 0.6s ease;
-}
-
-.card:hover::after {
-    transform: translateX(100%);
+/* Убрали анимацию смещения, оставили только изменение тени */
+.card:hover {
+    box-shadow: 0 6px 20px rgba(106, 61, 159, 0.15);
 }
 
 /* Анимация для иконок */

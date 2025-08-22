@@ -521,8 +521,15 @@ function editProduct(productId) {
         });
 }
 
-function deleteProduct(productId, productName) {
-    if (confirm(`Вы действительно хотите удалить товар "${productName}"?`)) {
+async function deleteProduct(productId, productName) {
+    const confirmed = await showConfirmDialog(
+        'Удаление товара',
+        `Вы действительно хотите удалить товар "${productName}"?`,
+        'Удалить',
+        'Отмена'
+    );
+    
+    if (confirmed) {
         fetch(`/api/product/${productId}/delete/`, {
             method: 'POST',
             headers: {
@@ -548,12 +555,19 @@ function editCategory(categoryId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Ошибка при загрузке данных категории');
+            showNotification('Ошибка при загрузке данных категории', 'error');
         });
 }
 
-function deleteCategory(categoryId, categoryName) {
-    if (confirm(`Вы действительно хотите удалить категорию "${categoryName}"?\nВнимание: это действие нельзя отменить!`)) {
+async function deleteCategory(categoryId, categoryName) {
+    const confirmed = await showConfirmDialog(
+        'Удаление категории',
+        `Вы действительно хотите удалить категорию "${categoryName}"?\n\nВнимание: это действие нельзя отменить!`,
+        'Удалить',
+        'Отмена'
+    );
+    
+    if (confirmed) {
         const formData = new FormData();
         formData.append('category_id', categoryId);
         formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
@@ -566,12 +580,12 @@ function deleteCategory(categoryId, categoryName) {
             if (response.ok) {
                 location.reload();
             } else {
-                alert('Ошибка при удалении категории');
+                showNotification('Ошибка при удалении категории', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Ошибка при удалении категории');
+            showNotification('Ошибка при удалении категории', 'error');
         });
     }
 }
@@ -689,7 +703,100 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// Функция для показа красивых уведомлений
+function showNotification(message, type = 'error') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = `
+        top: 20px; 
+        right: 20px; 
+        z-index: 9999; 
+        max-width: 400px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Автоматически удаляем через 5 секунд
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Функция для показа красивого окна подтверждения
+function showConfirmDialog(title, message, confirmText = 'Да', cancelText = 'Отмена') {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const titleElement = document.getElementById('confirmTitle');
+        const messageElement = document.getElementById('confirmMessage');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        titleElement.textContent = title;
+        messageElement.textContent = message;
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+        
+        const bsModal = new bootstrap.Modal(modal);
+        
+        function cleanup() {
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            modal.removeEventListener('hidden.bs.modal', onCancel);
+        }
+        
+        function onConfirm() {
+            cleanup();
+            bsModal.hide();
+            resolve(true);
+        }
+        
+        function onCancel() {
+            cleanup();
+            bsModal.hide();
+            resolve(false);
+        }
+        
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        modal.addEventListener('hidden.bs.modal', onCancel);
+        
+        bsModal.show();
+    });
+}
 </script>
+
+<!-- Модальное окно подтверждения -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmTitle">Подтверждение действия</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle text-warning me-3" style="font-size: 2rem;"></i>
+                    <p class="mb-0" id="confirmMessage">Вы уверены, что хотите выполнить это действие?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmBtn">Да</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
 .category-header:hover {
@@ -701,11 +808,12 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .product-card {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.2s ease;
 }
 
+/* УБРАЛИ РАЗДРАЖАЮЩЕЕ СМЕЩЕНИЕ */
 .product-card:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); - УДАЛЕНО! */
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
@@ -716,6 +824,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .category-section {
     transition: opacity 0.3s ease;
+}
+
+/* Стили для модального окна подтверждения */
+#confirmModal .modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+#confirmModal .modal-header {
+    background: linear-gradient(45deg, #6a3d9f, #8e44ad);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+#confirmModal .btn-close {
+    filter: invert(1);
 }
 </style>
 {% endblock %}
