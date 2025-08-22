@@ -149,17 +149,23 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'stock', 'get_availability_display', 'get_featured_display', 'get_type_display', 'get_image')
-    list_filter = ('category', 'available', 'featured', 'is_digital', 'created_at')
+    list_display = ('name', 'category', 'price', 'stock', 'get_availability_display', 'get_cities_display', 'get_featured_display', 'get_type_display', 'get_image')
+    list_filter = ('category', 'available', 'featured', 'is_digital', 'available_cities', 'created_at')
     search_fields = ('name', 'description', 'category__name')
     readonly_fields = ('get_image',)
     prepopulated_fields = {'slug': ('name',)}
+    filter_horizontal = ('available_cities',)  # Удобный виджет для выбора городов
+    
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'slug', 'description', 'category', 'price')
         }),
         ('Изображение', {
             'fields': ('image', 'get_image')
+        }),
+        ('Региональные настройки', {
+            'fields': ('available_cities',),
+            'description': 'Выберите города где будет доступен товар. Если не выбрано ни одного города, товар будет доступен только в вашем городе.'
         }),
         ('Настройки', {
             'fields': ('available', 'stock', 'is_digital', 'featured')
@@ -178,11 +184,40 @@ class ProductAdmin(admin.ModelAdmin):
         return "💻 Цифровой" if obj.is_digital else "📦 Физический"
     get_type_display.short_description = 'Тип товара'
 
+    def get_cities_display(self, obj):
+        cities = obj.available_cities.all()
+        if cities.exists():
+            city_names = [city.name for city in cities]
+            if len(city_names) > 2:
+                return f"{', '.join(city_names[:2])}... (+{len(city_names)-2})"
+            return ', '.join(city_names)
+        return "🏙️ Город администратора"
+    get_cities_display.short_description = 'Доступен в городах'
+
     def get_image(self, obj):
         if obj.image:
             return mark_safe(f'<img src="{obj.image.url}" width="100" height="100" style="object-fit: cover; border-radius: 8px;" />')
         return 'Нет изображения'
     get_image.short_description = 'Изображение'
+    
+    def save_model(self, request, obj, form, change):
+        """Автоматически добавляет город администратора если города не выбраны"""
+        super().save_model(request, obj, form, change)
+        
+        # Если города не выбраны и у администратора есть город
+        if not obj.available_cities.exists() and hasattr(request.user, 'city') and request.user.city:
+            obj.available_cities.add(request.user.city)
+    
+    def get_queryset(self, request):
+        """Фильтрует товары для администраторов городов"""
+        qs = super().get_queryset(request)
+        
+        # Если пользователь - администратор города (не суперпользователь)
+        if request.user.role == 'admin' and request.user.city and not request.user.is_superuser:
+            # Показывать только товары доступные в городе администратора
+            qs = qs.filter(available_cities=request.user.city)
+        
+        return qs
 
 @admin.register(Purchase)
 class PurchaseAdmin(admin.ModelAdmin):

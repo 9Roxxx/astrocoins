@@ -50,9 +50,42 @@ class Command(BaseCommand):
             else:
                 self.stdout.write("  ℹ️  Таблица core_user_cities уже существует")
             
+            # Проверяем таблицу core_product_available_cities
+            if 'core_product_available_cities' not in existing_tables:
+                self.stdout.write("🔧 Создаем таблицу core_product_available_cities...")
+                
+                # Создаем таблицу для many-to-many связи Product <-> City
+                cursor.execute("""
+                    CREATE TABLE "core_product_available_cities" (
+                        "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "product_id" integer NOT NULL REFERENCES "core_product" ("id") DEFERRABLE INITIALLY DEFERRED,
+                        "city_id" integer NOT NULL REFERENCES "core_city" ("id") DEFERRABLE INITIALLY DEFERRED
+                    )
+                """)
+                
+                # Создаем индексы
+                cursor.execute("""
+                    CREATE INDEX "core_product_available_cities_product_id_idx" ON "core_product_available_cities" ("product_id")
+                """)
+                
+                cursor.execute("""
+                    CREATE INDEX "core_product_available_cities_city_id_idx" ON "core_product_available_cities" ("city_id")
+                """)
+                
+                # Создаем уникальный индекс
+                cursor.execute("""
+                    CREATE UNIQUE INDEX "core_product_available_cities_product_id_city_id_uniq" 
+                    ON "core_product_available_cities" ("product_id", "city_id")
+                """)
+                
+                self.stdout.write("  ✅ Таблица core_product_available_cities создана")
+            else:
+                self.stdout.write("  ℹ️  Таблица core_product_available_cities уже существует")
+            
             # Проверяем другие возможные недостающие таблицы
             expected_tables = [
                 'core_user_cities',
+                'core_product_available_cities',
                 'core_group_students',  # Может понадобиться позже
             ]
             
@@ -66,6 +99,49 @@ class Command(BaseCommand):
             else:
                 self.stdout.write("✅ Все необходимые таблицы существуют")
     
+    def clear_all_products(self):
+        """Удаляет все товары и категории из базы данных"""
+        with connection.cursor() as cursor:
+            self.stdout.write("🗑️  Удаляем все товары и категории...")
+            
+            # Отключаем проверку внешних ключей
+            cursor.execute("PRAGMA foreign_keys = OFF")
+            
+            try:
+                # Удаляем связи товар-город если таблица существует
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='core_product_available_cities'")
+                if cursor.fetchone():
+                    cursor.execute("DELETE FROM core_product_available_cities")
+                    self.stdout.write("  🧹 Очищены связи товар-город")
+                
+                # Удаляем все покупки
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='core_purchase'")
+                if cursor.fetchone():
+                    cursor.execute("DELETE FROM core_purchase")
+                    self.stdout.write("  🛒 Удалены все покупки")
+                
+                # Удаляем все товары
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='core_product'")
+                if cursor.fetchone():
+                    cursor.execute("SELECT COUNT(*) FROM core_product")
+                    product_count = cursor.fetchone()[0]
+                    cursor.execute("DELETE FROM core_product")
+                    self.stdout.write(f"  📦 Удалено товаров: {product_count}")
+                
+                # Удаляем все категории
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='core_productcategory'")
+                if cursor.fetchone():
+                    cursor.execute("SELECT COUNT(*) FROM core_productcategory")
+                    category_count = cursor.fetchone()[0]
+                    cursor.execute("DELETE FROM core_productcategory")
+                    self.stdout.write(f"  📂 Удалено категорий: {category_count}")
+                
+            except Exception as e:
+                self.stdout.write(f"  ⚠️  Ошибка при удалении: {str(e)}")
+            finally:
+                # Включаем обратно проверку внешних ключей
+                cursor.execute("PRAGMA foreign_keys = ON")
+    
     def handle(self, *args, **options):
         """Исправление недостающих таблиц"""
         
@@ -73,6 +149,9 @@ class Command(BaseCommand):
         
         # 1. Проверяем и создаем недостающие таблицы
         self.check_and_create_missing_tables()
+        
+        # 2. Удаляем все товары для чистого старта
+        self.clear_all_products()
         
         # 2. Проверяем структуру базы после исправлений
         with connection.cursor() as cursor:
