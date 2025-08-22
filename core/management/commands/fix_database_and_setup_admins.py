@@ -60,6 +60,9 @@ class Command(BaseCommand):
         
         # Теперь используем raw SQL для безопасного удаления
         with connection.cursor() as cursor:
+            # Отключаем проверку внешних ключей
+            cursor.execute("PRAGMA foreign_keys = OFF")
+            
             # Получаем список пользователей которых НЕ нужно удалять
             admin_usernames = [admin['username'] for admin in city_admins]
             placeholders = ','.join(['?' for _ in admin_usernames])
@@ -74,15 +77,63 @@ class Command(BaseCommand):
             count_to_delete = cursor.fetchone()[0]
             
             if count_to_delete > 0:
-                # Удаляем пользователей
+                # Удаляем связанные записи сначала
+                self.stdout.write("  🧹 Очищаем связанные данные...")
+                
+                # Удаляем CoinAward записи для пользователей
+                cursor.execute(f"""
+                    DELETE FROM core_coinaward 
+                    WHERE user_id IN (
+                        SELECT id FROM core_user 
+                        WHERE username NOT IN ({placeholders})
+                        AND NOT (is_superuser = 1 AND username LIKE 'admin%')
+                    )
+                """, admin_usernames)
+                
+                # Удаляем Purchase записи
+                cursor.execute(f"""
+                    DELETE FROM core_purchase 
+                    WHERE student_id IN (
+                        SELECT id FROM core_user 
+                        WHERE username NOT IN ({placeholders})
+                        AND NOT (is_superuser = 1 AND username LIKE 'admin%')
+                    )
+                """, admin_usernames)
+                
+                # Обнуляем teacher_id в группах
+                cursor.execute(f"""
+                    UPDATE core_group 
+                    SET teacher_id = NULL 
+                    WHERE teacher_id IN (
+                        SELECT id FROM core_user 
+                        WHERE username NOT IN ({placeholders})
+                        AND NOT (is_superuser = 1 AND username LIKE 'admin%')
+                    )
+                """, admin_usernames)
+                
+                # Удаляем связи many-to-many в группах
+                cursor.execute(f"""
+                    DELETE FROM core_group_students 
+                    WHERE user_id IN (
+                        SELECT id FROM core_user 
+                        WHERE username NOT IN ({placeholders})
+                        AND NOT (is_superuser = 1 AND username LIKE 'admin%')
+                    )
+                """, admin_usernames)
+                
+                # Теперь удаляем пользователей
                 cursor.execute(f"""
                     DELETE FROM core_user 
                     WHERE username NOT IN ({placeholders})
                     AND NOT (is_superuser = 1 AND username LIKE 'admin%')
                 """, admin_usernames)
+                
                 self.stdout.write(f"  🗑️  Удалено пользователей: {count_to_delete}")
             else:
                 self.stdout.write("  ℹ️  Нет пользователей для удаления")
+            
+            # Включаем обратно проверку внешних ключей
+            cursor.execute("PRAGMA foreign_keys = ON")
         
         # 4. Создаем администраторов городов
         self.stdout.write("👥 Создаем администраторов городов...")
