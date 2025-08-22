@@ -282,17 +282,26 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="available_cities" class="form-label">Доступен в городах</label>
-                            <select class="form-select" id="available_cities" name="available_cities" multiple size="4">
+                            <label class="form-label">Доступен в городах</label>
+                            <div class="row">
                                 {% if cities %}
                                     {% for city in cities %}
-                                    <option value="{{ city.id }}">{{ city.name }}</option>
+                                    <div class="col-md-6 col-lg-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="available_cities" value="{{ city.id }}" 
+                                                   id="city_{{ city.id }}">
+                                            <label class="form-check-label" for="city_{{ city.id }}">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ city.name }}
+                                            </label>
+                                        </div>
+                                    </div>
                                     {% endfor %}
                                 {% endif %}
-                            </select>
+                            </div>
                             <div class="form-text">
                                 💡 Если не выбрать города, товар будет доступен только в вашем городе.
-                                Удерживайте Ctrl (Cmd на Mac) для выбора нескольких городов.
+                                Можно выбрать несколько городов сразу.
                             </div>
                         </div>
 
@@ -381,17 +390,26 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="editAvailableCities" class="form-label">Доступен в городах</label>
-                            <select class="form-select" id="editAvailableCities" name="available_cities" multiple size="4">
+                            <label class="form-label">Доступен в городах</label>
+                            <div class="row" id="editCitiesContainer">
                                 {% if cities %}
                                     {% for city in cities %}
-                                    <option value="{{ city.id }}">{{ city.name }}</option>
+                                    <div class="col-md-6 col-lg-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input edit-city-checkbox" type="checkbox" 
+                                                   name="available_cities" value="{{ city.id }}" 
+                                                   id="edit_city_{{ city.id }}">
+                                            <label class="form-check-label" for="edit_city_{{ city.id }}">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ city.name }}
+                                            </label>
+                                        </div>
+                                    </div>
                                     {% endfor %}
                                 {% endif %}
-                            </select>
+                            </div>
                             <div class="form-text">
                                 💡 Если не выбрать города, товар будет доступен только в вашем городе.
-                                Удерживайте Ctrl (Cmd на Mac) для выбора нескольких городов.
+                                Можно выбрать несколько городов сразу.
                             </div>
                         </div>
 
@@ -483,6 +501,22 @@ function editProduct(productId) {
             document.getElementById('editStock').value = data.stock;
             document.getElementById('editIsDigital').checked = data.is_digital;
             document.getElementById('editFeatured').checked = data.featured;
+            
+            // Очищаем все чекбоксы городов
+            document.querySelectorAll('.edit-city-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Отмечаем города из данных товара
+            if (data.cities && data.cities.length > 0) {
+                data.cities.forEach(cityId => {
+                    const checkbox = document.getElementById(`edit_city_${cityId}`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+            
             new bootstrap.Modal(document.getElementById('editProductModal')).show();
         });
 }
