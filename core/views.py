@@ -556,11 +556,19 @@ def groups(request):
     context = {}
     
     if request.user.is_teacher():
-        # Для преподавателя показываем его группы и группы где он куратор
+        # Для преподавателя и администратора показываем группы в зависимости от роли
         from django.db.models import Q
-        groups = Group.objects.filter(
-            Q(teacher=request.user) | Q(curator=request.user)
-        ).select_related('course', 'school', 'curator').distinct()
+        
+        if request.user.role == 'city_admin' and hasattr(request.user, 'city') and request.user.city:
+            # Администратор города видит ВСЕ группы своего города (независимо от того, кто учитель/куратор)
+            groups = Group.objects.filter(
+                school__city=request.user.city
+            ).select_related('course', 'school', 'curator', 'teacher').distinct()
+        else:
+            # Обычный преподаватель видит только свои группы и где он куратор
+            groups = Group.objects.filter(
+                Q(teacher=request.user) | Q(curator=request.user)
+            ).select_related('course', 'school', 'curator').distinct()
         
         if request.method == 'POST':
             action = request.POST.get('action')
@@ -970,13 +978,24 @@ def activity_monitoring(request):
     
     # Определяем какие пользователи доступны для просмотра
     if request.user.is_superuser:
-        # Администратор видит всех
-        available_users = User.objects.filter(role='student').select_related('profile', 'group')
-        purchases = Purchase.objects.all().select_related('user', 'product', 'user__profile', 'user__group')
-        transfers = Transaction.objects.filter(transaction_type='TRANSFER').select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group')
-        available_groups = Group.objects.all().order_by('name')
+        if request.user.role == 'city_admin' and hasattr(request.user, 'city') and request.user.city:
+            # Администратор города видит данные только своего города
+            available_users = User.objects.filter(role='student', city=request.user.city).select_related('profile', 'group')
+            purchases = Purchase.objects.filter(user__city=request.user.city).select_related('user', 'product', 'user__profile', 'user__group')
+            transfers = Transaction.objects.filter(
+                transaction_type='TRANSFER'
+            ).filter(
+                Q(sender__city=request.user.city) | Q(receiver__city=request.user.city)
+            ).select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group')
+            available_groups = Group.objects.filter(school__city=request.user.city).order_by('name')
+        else:
+            # Главный суперадмин видит всех
+            available_users = User.objects.filter(role='student').select_related('profile', 'group')
+            purchases = Purchase.objects.all().select_related('user', 'product', 'user__profile', 'user__group')
+            transfers = Transaction.objects.filter(transaction_type='TRANSFER').select_related('sender', 'receiver', 'sender__profile', 'receiver__profile', 'sender__group', 'receiver__group')
+            available_groups = Group.objects.all().order_by('name')
     else:
-        # Учитель видит только своих учеников
+        # Обычный учитель видит только своих учеников
         available_users = User.objects.filter(role='student', group__teacher=request.user).select_related('profile', 'group')
         purchases = Purchase.objects.filter(user__group__teacher=request.user).select_related('user', 'product', 'user__profile', 'user__group')
         transfers = Transaction.objects.filter(
@@ -1414,11 +1433,17 @@ def user_management(request):
     
     # Фильтруем учителей и группы по городу администратора
     if hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
-        # Администратор города видит только учителей своего города
-        teachers_query = User.objects.filter(role__in=['teacher', 'city_admin'], cities=request.user.city).order_by('username')
-        # И только группы школ своего города
+        # Администратор города видит:
+        # 1. Учителей, которые работают в этом городе (ManyToMany cities) ИЛИ администраторов этого города (ForeignKey city)
+        teachers_query = User.objects.filter(
+            Q(role__in=['teacher', 'city_admin'], cities=request.user.city) |  # Учителя работающие в городе
+            Q(role='city_admin', city=request.user.city)  # Администраторы этого города
+        ).distinct().order_by('username')
+        
+        # 2. ВСЕ группы в школах этого города (независимо от того, кто создал)
         groups_query = Group.objects.filter(school__city=request.user.city).select_related('teacher', 'school')
-        # И только родителей учеников своего города
+        
+        # 3. Родителей учеников этого города
         parents_query = Parent.objects.filter(students__city=request.user.city).distinct().order_by('full_name')
     else:
         # Главный суперадмин видит всех
