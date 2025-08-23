@@ -1073,6 +1073,10 @@ def user_management(request):
                 # Сохраняем изменения города и роли
                 user.save()
                 
+                # Если создается учитель, добавляем город в cities (ManyToMany)
+                if role == 'teacher' and user.city:
+                    user.cities.add(user.city)
+                
                 # Если создается ученик, добавляем дополнительные поля
                 if role == 'student':
                     birth_day = request.POST.get('birth_day')

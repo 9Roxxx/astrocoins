@@ -317,10 +317,27 @@
                                 <select class="form-select" id="role" name="role" required>
                                     <option value="student">Ученик</option>
                                     <option value="teacher">Преподаватель</option>
-                                    <option value="admin">Администратор</option>
+                                    <option value="city_admin">Администратор города</option>
                                 </select>
                             </div>
                         </div>
+                        
+                        <!-- Поле выбора города -->
+                        <div class="mb-3" id="cityField" style="display: none;">
+                            <label for="city" class="form-label">Город <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </span>
+                                <select class="form-select" id="city" name="city">
+                                    <option value="">Выберите город</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city.id }}">{{ city.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
                         <div id="studentFields" style="display: none;">
                             <div class="mb-3">
                                 <label class="form-label">Дата рождения</label>
@@ -794,8 +811,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const studentFields = document.getElementById('studentFields');
     
     function toggleStudentFields() {
-        const isStudent = roleSelect.value === 'student';
+        const role = roleSelect.value;
+        const isStudent = role === 'student';
+        const isTeacherOrAdmin = role === 'teacher' || role === 'city_admin';
+        
         studentFields.style.display = isStudent ? 'block' : 'none';
+        
+        // Управляем полем города
+        const cityField = document.getElementById('cityField');
+        const citySelect = document.getElementById('city');
+        
+        if (isTeacherOrAdmin) {
+            // Показываем поле города для учителей и администраторов
+            cityField.style.display = 'block';
+            if (citySelect) citySelect.setAttribute('required', 'required');
+        } else {
+            // Скрываем поле города для учеников
+            cityField.style.display = 'none';
+            if (citySelect) {
+                citySelect.removeAttribute('required');
+                citySelect.value = '';
+            }
+        }
         
         // Управляем атрибутом required для полей даты рождения
         const birthDayField = document.getElementById('birth_day');
