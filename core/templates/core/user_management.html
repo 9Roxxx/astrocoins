@@ -55,7 +55,7 @@
                                                 <div>
                                                     <h6 class="mb-0">
                                                         <i class="fas fa-crown text-warning me-2"></i>
-                                                        {{ user.get_full_name|default:user.username }}
+                                                        {{ user.username }}{% if user.get_full_name %} ({{ user.get_full_name_with_middle }}){% endif %}
                                                     </h6>
                                                     <small class="text-muted">{{ user.email }}</small>
                                                     <div>
@@ -98,7 +98,7 @@
                                         <div class="list-group-item">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                                                    <h6 class="mb-0">{{ user.username }}{% if user.get_full_name %} ({{ user.get_full_name_with_middle }}){% endif %}</h6>
                                                     <small class="text-muted">{{ user.email }}</small>
                                                     <div>
                                                         <small class="text-muted">
@@ -167,7 +167,7 @@
                                         <div class="list-group-item">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                                                    <h6 class="mb-0">{{ user.username }}{% if user.get_full_name %} ({{ user.get_full_name_with_middle }}){% endif %}</h6>
                                                     <small class="text-muted">{{ user.email }}</small>
                                                     <div>
                                                         <small class="text-muted">
@@ -339,6 +339,40 @@
                         </div>
                         
                         <div id="studentFields" style="display: none;">
+                            <!-- Поля ФИО для ученика -->
+                            <div class="mb-3">
+                                <label for="student_first_name" class="form-label">Имя ученика <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="student_first_name" name="student_first_name" 
+                                           placeholder="Введите имя ученика" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="student_last_name" class="form-label">Фамилия ученика <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="student_last_name" name="student_last_name" 
+                                           placeholder="Введите фамилию ученика" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="student_middle_name" class="form-label">Отчество ученика <small class="text-muted">(необязательно)</small></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="student_middle_name" name="student_middle_name" 
+                                           placeholder="Введите отчество ученика">
+                                </div>
+                            </div>
+                            
                             <div class="mb-3">
                                 <label class="form-label">Дата рождения</label>
                                 <div class="row">

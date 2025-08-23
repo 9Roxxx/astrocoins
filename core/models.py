@@ -106,6 +106,7 @@ class User(AbstractUser):
     
     # Дополнительные поля для учеников
     birth_date = models.DateField(null=True, blank=True, verbose_name='Дата рождения')
+    middle_name = models.CharField(max_length=150, blank=True, verbose_name='Отчество')
     parent_full_name = models.CharField(max_length=255, blank=True, verbose_name='ФИО родителя (устаревшее)')
     parent_phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон родителя (устаревшее)')
     
@@ -118,6 +119,17 @@ class User(AbstractUser):
     
     def is_student(self):
         return self.role == 'student'
+    
+    def get_full_name_with_middle(self):
+        """Получить полное имя с отчеством"""
+        parts = []
+        if self.last_name:
+            parts.append(self.last_name)
+        if self.first_name:
+            parts.append(self.first_name)
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return ' '.join(parts) if parts else self.username
     
     def get_cities(self):
         """Получить все города пользователя"""
