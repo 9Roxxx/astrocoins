@@ -64,29 +64,38 @@ def dashboard(request):
             birthday_award_today = Transaction.objects.filter(
                 receiver=request.user,
                 transaction_type='EARN',
-                description__icontains='день рождения',
+                description__icontains='BIRTHDAY_GIFT',
                 created_at__date=today
             ).exists()
             
+            # Дополнительная проверка через сессию (защита от быстрых перезагрузок)
+            session_key = f'birthday_gift_{request.user.id}_{today.strftime("%Y-%m-%d")}'
+            session_gift_given = request.session.get(session_key, False)
+            
             # Если монеты еще не начислены - начисляем автоматически
-            if not birthday_award_today:
+            if not birthday_award_today and not session_gift_given:
                 try:
+                    # Устанавливаем флаг в сессии ПЕРЕД начислением
+                    request.session[session_key] = True
+                    
                     # Начисляем 100 астрокоинов
                     profile.astrocoins += 100
                     profile.save()
                     
-                    # Создаем запись о транзакции
+                    # Создаем запись о транзакции с уникальным маркером
                     Transaction.objects.create(
                         receiver=request.user,
                         amount=100,
                         transaction_type='EARN',
-                        description=f'🎉 Поздравляем с днём рождения! Подарок от Астро-Маркета'
+                        description=f'🎉 BIRTHDAY_GIFT: Поздравляем с днём рождения! Подарок от Астро-Маркета'
                     )
                     
                     birthday_coins_awarded = True
                     messages.success(request, '🎉 С днём рождения! Вам начислено 100 астрокоинов в подарок!')
                     
                 except Exception as e:
+                    # Убираем флаг из сессии если произошла ошибка
+                    request.session.pop(session_key, None)
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f'Ошибка при начислении монет за день рождения пользователю {request.user.username}: {str(e)}')
