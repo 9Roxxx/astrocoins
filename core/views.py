@@ -423,6 +423,9 @@ def profile(request):
 
 @login_required
 def profile_edit(request, user_id=None):
+    # Определяем, редактирует ли пользователь свой профиль
+    is_own_profile = user_id is None
+    
     # Если user_id не указан, значит пользователь пытается редактировать свой профиль
     if user_id is None:
         # Любой пользователь может редактировать свой профиль
@@ -510,7 +513,7 @@ def profile_edit(request, user_id=None):
 
     context = {
         'user_to_edit': user_to_edit,
-        'is_own_profile': user_id is None,
+        'is_own_profile': is_own_profile,
         'cities': City.objects.all().order_by('name'),  # Для выбора города
     }
     return render(request, 'core/profile_edit.html', context)
