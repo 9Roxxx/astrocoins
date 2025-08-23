@@ -312,7 +312,9 @@ class Purchase(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name}"
+        user_name = self.user.username if self.user else "Неизвестный пользователь"
+        product_name = self.product.name if self.product else "Неизвестный товар"
+        return f"{user_name} - {product_name}"
     
     def mark_as_delivered(self):
         """Отметить товар как выданный"""
@@ -361,7 +363,8 @@ class School(models.Model):
         ordering = ['city__name', 'name']
 
     def __str__(self):
-        return f"{self.name} ({self.city.name})"
+        city_name = self.city.name if self.city else "Без города"
+        return f"{self.name} ({city_name})"
 
     @property
     def courses_count(self):
@@ -391,7 +394,8 @@ class Course(models.Model):
         ordering = ['school__name', 'name']
 
     def __str__(self):
-        return f"{self.name} - {self.school.name}"
+        school_name = self.school.name if self.school else "Без школы"
+        return f"{self.name} - {school_name}"
 
     @property
     def groups_count(self):
@@ -431,7 +435,9 @@ class Group(models.Model):
         ordering = ['-is_active', '-created_at']
 
     def __str__(self):
-        return f"{self.name} - {self.course.name} ({self.school.name})"
+        course_name = self.course.name if self.course else "Без курса"
+        school_name = self.school.name if self.school else "Без школы"
+        return f"{self.name} - {course_name} ({school_name})"
 
     @property
     def students_count(self):
@@ -466,7 +472,9 @@ class CoinAward(models.Model):
     comment = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.student.username} получил {self.amount} AC от {self.teacher.username}"
+        student_name = self.student.username if self.student else "Неизвестный ученик"
+        teacher_name = self.teacher.username if self.teacher else "Неизвестный учитель"
+        return f"{student_name} получил {self.amount} AC от {teacher_name}"
 
     def save(self, *args, **kwargs):
         if not self.pk:  # Только при создании
