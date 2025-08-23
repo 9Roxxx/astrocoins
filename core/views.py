@@ -451,6 +451,24 @@ def profile_edit(request, user_id=None):
             user_to_edit.first_name = request.POST.get('first_name', '')
             user_to_edit.last_name = request.POST.get('last_name', '')
             user_to_edit.email = request.POST.get('email', '')
+            
+            # Смена города (только для администраторов городов)
+            if user_to_edit.role == 'city_admin' and is_own_profile:
+                new_city_id = request.POST.get('city')
+                if new_city_id and new_city_id != str(user_to_edit.city.id if user_to_edit.city else ''):
+                    try:
+                        new_city = City.objects.get(id=new_city_id)
+                        old_city_name = user_to_edit.city.name if user_to_edit.city else 'Не указан'
+                        user_to_edit.city = new_city
+                        
+                        messages.warning(request, 
+                            f'Город изменен с "{old_city_name}" на "{new_city.name}". '
+                            f'ВНИМАНИЕ: Теперь вы будете видеть только данные нового города: '
+                            f'учеников, товары, категории, группы. Доступ к данным прежнего города будет утерян.')
+                    except City.DoesNotExist:
+                        messages.error(request, 'Выбранный город не найден')
+                        return redirect('profile_edit')
+            
             user_to_edit.save()
             
             messages.success(request, 'Профиль успешно обновлен!')
@@ -475,6 +493,7 @@ def profile_edit(request, user_id=None):
     context = {
         'user_to_edit': user_to_edit,
         'is_own_profile': user_id is None,
+        'cities': City.objects.all().order_by('name'),  # Для выбора города
     }
     return render(request, 'core/profile_edit.html', context)
 

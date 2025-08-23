@@ -50,6 +50,23 @@
                             <input type="email" class="form-control" id="email" name="email" value="{{ user_to_edit.email }}">
                         </div>
 
+                        {% if is_own_profile and user_to_edit.role == 'city_admin' %}
+                        <div class="mb-3">
+                            <label for="city" class="form-label">Город</label>
+                            <select class="form-select" id="city" name="city">
+                                {% for city in cities %}
+                                <option value="{{ city.id }}" {% if user_to_edit.city and city.id == user_to_edit.city.id %}selected{% endif %}>
+                                    {{ city.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted text-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <strong>ВНИМАНИЕ:</strong> При смене города вы потеряете доступ к данным текущего города (ученики, товары, группы).
+                            </small>
+                        </div>
+                        {% endif %}
+
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-2"></i>Сохранить изменения
                         </button>
