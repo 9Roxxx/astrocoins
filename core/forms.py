@@ -318,12 +318,12 @@ class GroupForm(forms.ModelForm):
         
         # Ограничиваем выбор преподавателей
         self.fields['teacher'].queryset = User.objects.filter(
-            role__in=['teacher', 'admin']
+            role__in=['teacher', 'city_admin']
         ).order_by('first_name', 'last_name', 'username')
         
         # Ограничиваем выбор кураторов
         self.fields['curator'].queryset = User.objects.filter(
-            role='admin'
+            role='city_admin'
         ).order_by('first_name', 'last_name', 'username')
         self.fields['curator'].empty_label = "Не назначен"
         

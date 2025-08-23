@@ -1234,7 +1234,7 @@ def user_management(request):
             description = request.POST.get('description')
             
             try:
-                teacher = User.objects.get(id=teacher_id, role='teacher')
+                teacher = User.objects.get(id=teacher_id, role__in=['teacher', 'city_admin'])
                 group = Group.objects.create(
                     name=name,
                     description=description,
@@ -1253,7 +1253,7 @@ def user_management(request):
             
             try:
                 group = Group.objects.get(id=group_id)
-                teacher = User.objects.get(id=teacher_id, role='teacher')
+                teacher = User.objects.get(id=teacher_id, role__in=['teacher', 'city_admin'])
                 
                 group.name = name
                 group.teacher = teacher
@@ -1284,14 +1284,14 @@ def user_management(request):
     # Фильтруем учителей и группы по городу администратора
     if hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
         # Администратор города видит только учителей своего города
-        teachers_query = User.objects.filter(role='teacher', cities=request.user.city).order_by('username')
+        teachers_query = User.objects.filter(role__in=['teacher', 'city_admin'], cities=request.user.city).order_by('username')
         # И только группы школ своего города
         groups_query = Group.objects.filter(school__city=request.user.city).select_related('teacher', 'school')
         # И только родителей учеников своего города
         parents_query = Parent.objects.filter(students__city=request.user.city).distinct().order_by('full_name')
     else:
         # Главный суперадмин видит всех
-        teachers_query = User.objects.filter(role='teacher').order_by('username')
+        teachers_query = User.objects.filter(role__in=['teacher', 'city_admin']).order_by('username')
         groups_query = Group.objects.all().select_related('teacher', 'school')
         parents_query = Parent.objects.all().order_by('full_name')
     
