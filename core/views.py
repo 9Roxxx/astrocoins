@@ -47,11 +47,57 @@ def dashboard(request):
     # Выбираем случайный фон при каждом входе
     random_background = random.choice(GAME_BACKGROUNDS)
     
+    # Проверяем день рождения для учеников
+    is_birthday = False
+    birthday_coins_awarded = False
+    
+    if request.user.role == 'student' and request.user.birth_date:
+        from datetime import date
+        today = date.today()
+        
+        # Проверяем, сегодня ли день рождения (день и месяц)
+        if (today.day == request.user.birth_date.day and 
+            today.month == request.user.birth_date.month):
+            is_birthday = True
+            
+            # Проверяем, были ли уже начислены монеты за этот день рождения
+            birthday_award_today = Transaction.objects.filter(
+                receiver=request.user,
+                transaction_type='EARN',
+                description__icontains='день рождения',
+                created_at__date=today
+            ).exists()
+            
+            # Если монеты еще не начислены - начисляем автоматически
+            if not birthday_award_today:
+                try:
+                    # Начисляем 100 астрокоинов
+                    profile.astrocoins += 100
+                    profile.save()
+                    
+                    # Создаем запись о транзакции
+                    Transaction.objects.create(
+                        receiver=request.user,
+                        amount=100,
+                        transaction_type='EARN',
+                        description=f'🎉 Поздравляем с днём рождения! Подарок от Астро-Маркета'
+                    )
+                    
+                    birthday_coins_awarded = True
+                    messages.success(request, '🎉 С днём рождения! Вам начислено 100 астрокоинов в подарок!')
+                    
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f'Ошибка при начислении монет за день рождения пользователю {request.user.username}: {str(e)}')
+    
     context = {
         'profile': profile,
         'transactions': transactions,
         'background_image': random_background['url'],
         'background_name': random_background['name'],
+        'is_birthday': is_birthday,
+        'birthday_coins_awarded': birthday_coins_awarded,
     }
     return render(request, 'core/dashboard.html', context)
 

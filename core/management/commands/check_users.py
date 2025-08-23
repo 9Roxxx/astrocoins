@@ -31,3 +31,4 @@ class Command(BaseCommand):
         self.stdout.write("Кураторы в форме:")
         for curator in form.fields['curator'].queryset:
             self.stdout.write(f"  - {curator.username} (role: {curator.role})")
+

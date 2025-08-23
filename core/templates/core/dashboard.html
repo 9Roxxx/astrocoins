@@ -3,6 +3,47 @@
 {% block title %}Главная - Астрокоины{% endblock %}
 
 {% block content %}
+
+<!-- Модальное окно поздравления с днём рождения -->
+{% if is_birthday %}
+<div class="modal fade" id="birthdayModal" tabindex="-1" aria-labelledby="birthdayModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content birthday-modal-content">
+            <div class="modal-header birthday-header">
+                <h4 class="modal-title w-100 text-center" id="birthdayModalLabel">
+                    🎉 С ДНЁМ РОЖДЕНИЯ! 🎉
+                </h4>
+            </div>
+            <div class="modal-body text-center birthday-body">
+                <div class="birthday-animation mb-4">
+                    <div class="birthday-cake">🎂</div>
+                    <div class="birthday-balloons">🎈🎈🎈</div>
+                </div>
+                <h5 class="mb-3">{{ user.first_name|default:user.username }}, поздравляем!</h5>
+                <p class="birthday-message">
+                    Желаем тебе море счастья,<br>
+                    океан удачи и бесконечное<br>
+                    количество улыбок! 🌟
+                </p>
+                <div class="birthday-gift">
+                    <h4 class="astrocoins-balance">
+                        <i class="fas fa-gift me-2"></i>
+                        +100 астрокоинов в подарок!
+                    </h4>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-dismiss="modal">
+                    <i class="fas fa-heart me-2"></i>Спасибо! 
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Контейнер для анимации конфетти -->
+<div id="confetti-container"></div>
+{% endif %}
 <div class="container-fluid">
     <div class="row">
     <!-- Левая колонка: Баланс и Перевод -->
@@ -135,6 +176,61 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // === ДЕНЬ РОЖДЕНИЯ АНИМАЦИЯ ===
+    {% if is_birthday %}
+    // Создаем анимацию конфетти
+    function createConfetti() {
+        const container = document.getElementById('confetti-container');
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#ff9ff3', '#54a0ff'];
+        
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            
+            // Случайная форма конфетти
+            if (Math.random() > 0.5) {
+                confetti.style.borderRadius = '50%';
+            }
+            
+            container.appendChild(confetti);
+        }
+        
+        // Удаляем конфетти через 5 секунд
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 5000);
+    }
+    
+    // Показываем модальное окно дня рождения
+    const birthdayModal = new bootstrap.Modal(document.getElementById('birthdayModal'));
+    
+    // Запускаем конфетти сразу при загрузке
+    createConfetti();
+    
+    // Показываем модальное окно через небольшую задержку
+    setTimeout(() => {
+        birthdayModal.show();
+    }, 500);
+    
+    // Запускаем дополнительное конфетти при закрытии модального окна
+    document.getElementById('birthdayModal').addEventListener('hidden.bs.modal', function () {
+        createConfetti();
+    });
+    
+    // Периодически запускаем конфетти во время показа модального окна
+    const confettiInterval = setInterval(() => {
+        if (document.getElementById('birthdayModal').classList.contains('show')) {
+            createConfetti();
+        } else {
+            clearInterval(confettiInterval);
+        }
+    }, 3000);
+    {% endif %}
+    
     const transferModal = new bootstrap.Modal(document.getElementById('transferModal'));
     const form = document.getElementById('transferForm');
     const amountInput = document.getElementById('amount');
@@ -355,6 +451,154 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <style>
+/* === СТИЛИ ДЛЯ ДНЯ РОЖДЕНИЯ === */
+{% if is_birthday %}
+/* Анимация конфетти */
+#confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #f00;
+    animation: confetti-fall 3s linear infinite;
+}
+
+.confetti:nth-child(odd) {
+    background: #00f;
+    animation-delay: 0.5s;
+}
+
+.confetti:nth-child(3n) {
+    background: #0f0;
+    animation-delay: 1s;
+}
+
+.confetti:nth-child(4n) {
+    background: #ff0;
+    animation-delay: 1.5s;
+}
+
+.confetti:nth-child(5n) {
+    background: #f0f;
+    animation-delay: 2s;
+}
+
+.confetti:nth-child(6n) {
+    background: #0ff;
+    animation-delay: 0.3s;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Стили модального окна дня рождения */
+.birthday-modal-content {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+    background-size: 400% 400%;
+    animation: birthday-gradient 3s ease infinite;
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+@keyframes birthday-gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.birthday-header {
+    border-bottom: none;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.birthday-body {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+.birthday-header h4 {
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: bold;
+    margin: 0;
+}
+
+.birthday-animation {
+    animation: birthday-bounce 2s ease-in-out infinite;
+}
+
+@keyframes birthday-bounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.birthday-cake {
+    font-size: 4rem;
+    animation: cake-rotate 3s ease-in-out infinite;
+}
+
+@keyframes cake-rotate {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+}
+
+.birthday-balloons {
+    font-size: 2rem;
+    animation: balloons-float 2s ease-in-out infinite alternate;
+}
+
+@keyframes balloons-float {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-15px); }
+}
+
+.birthday-message {
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.birthday-gift {
+    background: rgba(255, 215, 0, 0.2);
+    border: 2px dashed #ffd700;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 20px 0;
+    animation: gift-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes gift-glow {
+    0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+}
+
+.birthday-gift h4 {
+    color: #d4af37;
+    margin: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+{% endif %}
+
 /* Предотвращение горизонтальной прокрутки */
 body {
     overflow-x: hidden;
