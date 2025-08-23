@@ -516,8 +516,11 @@ def groups(request):
     context = {}
     
     if request.user.is_teacher():
-        # Для преподавателя показываем его группы и форму создания группы
-        groups = Group.objects.filter(teacher=request.user).select_related('course', 'school', 'curator')
+        # Для преподавателя показываем его группы и группы где он куратор
+        from django.db.models import Q
+        groups = Group.objects.filter(
+            Q(teacher=request.user) | Q(curator=request.user)
+        ).select_related('course', 'school', 'curator').distinct()
         
         if request.method == 'POST':
             action = request.POST.get('action')
