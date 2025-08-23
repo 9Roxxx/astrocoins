@@ -54,6 +54,7 @@
                         <div class="mb-3">
                             <label for="city" class="form-label">Город</label>
                             <select class="form-select" id="city" name="city">
+                                <option value="">Выберите город</option>
                                 {% for city in cities %}
                                 <option value="{{ city.id }}" {% if user_to_edit.city and city.id == user_to_edit.city.id %}selected{% endif %}>
                                     {{ city.name }}

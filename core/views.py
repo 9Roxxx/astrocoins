@@ -447,31 +447,49 @@ def profile_edit(request, user_id=None):
         action = request.POST.get('action')
         
         if action == 'update_profile':
-            # Обновление основной информации
-            user_to_edit.first_name = request.POST.get('first_name', '')
-            user_to_edit.last_name = request.POST.get('last_name', '')
-            user_to_edit.email = request.POST.get('email', '')
-            
-            # Смена города (только для администраторов городов)
-            if user_to_edit.role == 'city_admin' and is_own_profile:
-                new_city_id = request.POST.get('city')
-                if new_city_id and new_city_id != str(user_to_edit.city.id if user_to_edit.city else ''):
+            try:
+                # Обновление основной информации
+                user_to_edit.first_name = request.POST.get('first_name', '')
+                user_to_edit.last_name = request.POST.get('last_name', '')
+                user_to_edit.email = request.POST.get('email', '')
+                
+                # Смена города (только для администраторов городов)
+                if user_to_edit.role == 'city_admin' and is_own_profile:
+                    new_city_id = request.POST.get('city')
+                    
+                    # Приводим к int для корректного сравнения
                     try:
-                        new_city = City.objects.get(id=new_city_id)
-                        old_city_name = user_to_edit.city.name if user_to_edit.city else 'Не указан'
-                        user_to_edit.city = new_city
-                        
-                        messages.warning(request, 
-                            f'Город изменен с "{old_city_name}" на "{new_city.name}". '
-                            f'ВНИМАНИЕ: Теперь вы будете видеть только данные нового города: '
-                            f'учеников, товары, категории, группы. Доступ к данным прежнего города будет утерян.')
-                    except City.DoesNotExist:
-                        messages.error(request, 'Выбранный город не найден')
-                        return redirect('profile_edit')
-            
-            user_to_edit.save()
-            
-            messages.success(request, 'Профиль успешно обновлен!')
+                        new_city_id = int(new_city_id) if new_city_id else None
+                    except (ValueError, TypeError):
+                        new_city_id = None
+                    
+                    current_city_id = user_to_edit.city.id if user_to_edit.city else None
+                    
+                    # Проверяем, изменился ли город
+                    if new_city_id and new_city_id != current_city_id:
+                        try:
+                            new_city = City.objects.get(id=new_city_id)
+                            old_city_name = user_to_edit.city.name if user_to_edit.city else 'Не указан'
+                            user_to_edit.city = new_city
+                            
+                            messages.warning(request, 
+                                f'Город изменен с "{old_city_name}" на "{new_city.name}". '
+                                f'ВНИМАНИЕ: Теперь вы будете видеть только данные нового города: '
+                                f'учеников, товары, категории, группы. Доступ к данным прежнего города будет утерян.')
+                        except City.DoesNotExist:
+                            messages.error(request, 'Выбранный город не найден')
+                            return redirect('profile_edit')
+                
+                user_to_edit.save()
+                messages.success(request, 'Профиль успешно обновлен!')
+                
+            except Exception as e:
+                # Логируем ошибку и показываем пользователю понятное сообщение
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f'Ошибка при обновлении профиля пользователя {user_to_edit.username}: {str(e)}')
+                messages.error(request, f'Произошла ошибка при сохранении профиля: {str(e)}')
+                return redirect('profile_edit')
             
         elif action == 'change_password':
             # Смена пароля
