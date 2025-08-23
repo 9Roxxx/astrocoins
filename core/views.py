@@ -1248,6 +1248,30 @@ def user_management(request):
             try:
                 user = User.objects.get(id=user_id)
                 username = user.username
+                
+                # Проверяем, есть ли у пользователя активные группы как преподаватель
+                teaching_groups = Group.objects.filter(teacher=user, is_active=True)
+                
+                # Проверяем, есть ли у пользователя группы как куратор
+                curated_groups = Group.objects.filter(curator=user, is_active=True)
+                
+                if teaching_groups.exists() or curated_groups.exists():
+                    groups_info = []
+                    if teaching_groups.exists():
+                        teaching_list = [f'"{group.name}"' for group in teaching_groups]
+                        groups_info.append(f"преподает в группах: {', '.join(teaching_list)}")
+                    
+                    if curated_groups.exists():
+                        curated_list = [f'"{group.name}"' for group in curated_groups]
+                        groups_info.append(f"курирует группы: {', '.join(curated_list)}")
+                    
+                    groups_text = '; '.join(groups_info)
+                    
+                    messages.error(request, 
+                        f'Невозможно удалить пользователя {username}, так как он {groups_text}. '
+                        f'Сначала переназначьте группы другому преподавателю/куратору или удалите группы.')
+                    return redirect('user_management')
+                
                 user.delete()
                 messages.success(request, f'Пользователь {username} успешно удален')
             except Exception as e:

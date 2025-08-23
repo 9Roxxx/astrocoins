@@ -798,8 +798,12 @@ function showConfirmDialog(title, message, confirmText = 'Да', cancelText = '�
 
 #confirmModal .modal-header {
     background: linear-gradient(45deg, #6a3d9f, #8e44ad);
-    color: white;
+    color: white !important;
     border-radius: 15px 15px 0 0;
+}
+
+#confirmModal .modal-title {
+    color: white !important;
 }
 
 #confirmModal .btn-close {
