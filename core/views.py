@@ -1284,13 +1284,17 @@ def user_management(request):
                 user.email = email
                 user.role = role
                 
-                # Обновляем права администратора
+                # Обновляем права администратора (НЕ ТРОГАЕМ главного суперадмина)
                 if role == 'city_admin':
-                    user.is_superuser = True
-                    user.is_staff = True
+                    # Только если это НЕ главный суперадмин
+                    if not (user.is_superuser and user.username in ['admin', 'superadmin', 'root']):
+                        user.is_superuser = True
+                        user.is_staff = True
                 else:
-                    user.is_superuser = False
-                    user.is_staff = False
+                    # НЕ убираем права у главного администратора
+                    if not (user.is_superuser and user.username in ['admin', 'superadmin', 'root']):
+                        user.is_superuser = False
+                        user.is_staff = False
                 
                 if role == 'student':
                     birth_day = request.POST.get('birth_day')
@@ -1377,6 +1381,16 @@ def user_management(request):
             try:
                 user = User.objects.get(id=user_id)
                 username = user.username
+                
+                # Защита от удаления самого себя
+                if user.id == request.user.id:
+                    messages.error(request, 'Нельзя удалить самого себя!')
+                    return redirect('user_management')
+                
+                # Защита от удаления главного суперадмина
+                if user.is_superuser and user.username in ['admin', 'superadmin', 'root']:
+                    messages.error(request, f'Нельзя удалить главного администратора {username}!')
+                    return redirect('user_management')
                 
                 # Проверяем, есть ли у пользователя активные группы как преподаватель
                 teaching_groups = Group.objects.filter(teacher=user, is_active=True)
@@ -1497,8 +1511,16 @@ def user_management(request):
         groups_query = Group.objects.all().select_related('teacher', 'school')
         parents_query = Parent.objects.all().order_by('full_name')
     
+    # Фильтрация администраторов по городу
+    if hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
+        # Администратор города видит только администраторов своего города
+        admins_query = User.objects.filter(role='city_admin', city=request.user.city).order_by('username')
+    else:
+        # Главный суперадмин видит всех администраторов
+        admins_query = User.objects.filter(role='city_admin').order_by('username')
+
     context = {
-        'admins': User.objects.filter(role='city_admin').order_by('username'),
+        'admins': admins_query,
         'teachers': teachers_query,
         'students': students_query,
         'groups': groups_query,

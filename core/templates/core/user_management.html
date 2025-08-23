@@ -71,7 +71,7 @@
                                                             data-bs-target="#editUserModal">
                                                         <i class="fas fa-edit me-1"></i>Редактировать
                                                     </button>
-                                                    {% if user.id != request.user.id %}
+                                                    {% if user.id != request.user.id and not user.username in 'admin,superadmin,root' %}
                                                     <button class="btn btn-outline-danger btn-sm" 
                                                             onclick="showDeleteUser('{{ user.id }}', '{{ user.username }}')"
                                                             data-bs-toggle="modal" 
