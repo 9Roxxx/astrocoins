@@ -690,6 +690,20 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <label for="groupCurator" class="form-label">Куратор</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user-tie"></i>
+                                </span>
+                                <select class="form-select" id="groupCurator" name="curator">
+                                    <option value="">Не назначен</option>
+                                    {% for admin in admins %}
+                                    <option value="{{ admin.id }}">{{ admin.get_full_name|default:admin.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label for="groupDescription" class="form-label">Описание</label>
                             <div class="input-group">
                                 <span class="input-group-text">

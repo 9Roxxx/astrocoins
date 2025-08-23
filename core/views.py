@@ -530,9 +530,18 @@ def groups(request):
                 if form.is_valid():
                     try:
                         group = form.save(commit=False)
-                        group.teacher = request.user  # Устанавливаем текущего пользователя как преподавателя
+                        # Если администратор не выбрал учителя, устанавливаем его самого
+                        if not group.teacher:
+                            group.teacher = request.user
                         group.save()
-                        messages.success(request, f'Группа "{group.name}" успешно создана')
+                        
+                        teacher_name = group.teacher.get_full_name() or group.teacher.username
+                        curator_info = ""
+                        if group.curator:
+                            curator_name = group.curator.get_full_name() or group.curator.username
+                            curator_info = f", куратор: {curator_name}"
+                        
+                        messages.success(request, f'Группа "{group.name}" успешно создана (преподаватель: {teacher_name}{curator_info})')
                     except Exception as e:
                         messages.error(request, f'Ошибка при создании группы: {str(e)}')
                 else:
@@ -1247,16 +1256,34 @@ def user_management(request):
         elif action == 'create_group':
             name = request.POST.get('name')
             teacher_id = request.POST.get('teacher')
+            curator_id = request.POST.get('curator')
             description = request.POST.get('description')
             
             try:
                 teacher = User.objects.get(id=teacher_id, role__in=['teacher', 'city_admin'])
+                
+                # Получаем куратора, если выбран
+                curator = None
+                if curator_id:
+                    try:
+                        curator = User.objects.get(id=curator_id, role='city_admin')
+                    except User.DoesNotExist:
+                        messages.warning(request, 'Выбранный куратор не найден, группа создана без куратора')
+                
                 group = Group.objects.create(
                     name=name,
                     description=description,
-                    teacher=teacher
+                    teacher=teacher,
+                    curator=curator
                 )
-                messages.success(request, f'Группа {name} успешно создана')
+                
+                teacher_name = teacher.get_full_name() or teacher.username
+                curator_info = ""
+                if curator:
+                    curator_name = curator.get_full_name() or curator.username
+                    curator_info = f", куратор: {curator_name}"
+                
+                messages.success(request, f'Группа {name} успешно создана (преподаватель: {teacher_name}{curator_info})')
             except User.DoesNotExist:
                 messages.error(request, 'Выбранный преподаватель не найден')
             except Exception as e:
