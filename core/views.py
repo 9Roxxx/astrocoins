@@ -686,6 +686,13 @@ def groups(request):
                         student = User.objects.get(id=student_id, role='student')
                         group = Group.objects.get(id=group_id)
                         
+                        # Проверяем что администратор города может работать только с учениками своего города
+                        if (hasattr(request.user, 'city') and request.user.city and 
+                            request.user.role == 'city_admin' and 
+                            student.city != request.user.city):
+                            messages.error(request, f'Вы можете добавлять только учеников из вашего города ({request.user.city.name})')
+                            return redirect('groups')
+                        
                         # Проверяем что ученик еще не в группе
                         if student.group:
                             messages.warning(request, f'Ученик {student.get_full_name() or student.username} уже состоит в группе "{student.group.name}"')
@@ -710,6 +717,14 @@ def groups(request):
                     
                     try:
                         student = User.objects.get(id=student_id, role='student')
+                        
+                        # Проверяем что администратор города может работать только с учениками своего города
+                        if (hasattr(request.user, 'city') and request.user.city and 
+                            request.user.role == 'city_admin' and 
+                            student.city != request.user.city):
+                            messages.error(request, f'Вы можете управлять только учениками из вашего города ({request.user.city.name})')
+                            return redirect('groups')
+                        
                         group_name = student.group.name if student.group else 'Без группы'
                         
                         student.group = None
@@ -737,11 +752,20 @@ def groups(request):
             'courses': Course.objects.filter(is_active=True).order_by('school__name', 'name'),
         })
         
-        # Для администраторов добавляем список всех учеников для управления группами
+        # Для администраторов добавляем список учеников для управления группами
         if request.user.is_superuser:
+            # Фильтруем учеников по городу администратора
+            students_query = User.objects.filter(role='student').select_related('group')
+            students_without_group_query = User.objects.filter(role='student', group=None)
+            
+            # Если у администратора есть город, показываем только учеников этого города
+            if hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
+                students_query = students_query.filter(city=request.user.city)
+                students_without_group_query = students_without_group_query.filter(city=request.user.city)
+            
             context.update({
-                'all_students': User.objects.filter(role='student').select_related('group').order_by('username'),
-                'students_without_group': User.objects.filter(role='student', group=None).order_by('username'),
+                'all_students': students_query.order_by('username'),
+                'students_without_group': students_without_group_query.order_by('username'),
             })
     else:
         # Для ученика показываем его группу и статистику
