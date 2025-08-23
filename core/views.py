@@ -84,6 +84,7 @@ def dashboard(request):
                     
                     # Создаем запись о транзакции с уникальным маркером
                     Transaction.objects.create(
+                        sender=request.user,  # Указываем отправителя (системный подарок)
                         receiver=request.user,
                         amount=100,
                         transaction_type='EARN',
