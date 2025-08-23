@@ -817,22 +817,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         studentFields.style.display = isStudent ? 'block' : 'none';
         
-        // Управляем полем города
+        // Управляем полем города - показываем для всех ролей
         const cityField = document.getElementById('cityField');
         const citySelect = document.getElementById('city');
         
-        if (isTeacherOrAdmin) {
-            // Показываем поле города для учителей и администраторов
-            cityField.style.display = 'block';
-            if (citySelect) citySelect.setAttribute('required', 'required');
-        } else {
-            // Скрываем поле города для учеников
-            cityField.style.display = 'none';
-            if (citySelect) {
-                citySelect.removeAttribute('required');
-                citySelect.value = '';
-            }
-        }
+        // Показываем поле города для всех ролей
+        cityField.style.display = 'block';
+        if (citySelect) citySelect.setAttribute('required', 'required');
         
         // Управляем атрибутом required для полей даты рождения
         const birthDayField = document.getElementById('birth_day');

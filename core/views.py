@@ -1057,16 +1057,25 @@ def user_management(request):
                     role=role
                 )
                 
-                # Устанавливаем город
+                # Устанавливаем город (обязательно для всех ролей)
                 if city_id:
                     try:
                         city = City.objects.get(id=city_id)
                         user.city = city
                     except City.DoesNotExist:
-                        pass
+                        user.delete()
+                        messages.error(request, 'Выбранный город не найден')
+                        return redirect('user_management')
                 elif hasattr(request.user, 'city') and request.user.city and request.user.role == 'city_admin':
                     # Если администратор города создает пользователя, автоматически устанавливаем его город
                     user.city = request.user.city
+                    messages.info(request, f'Автоматически назначен город: {user.city.name}')
+                else:
+                    # Город обязателен для всех пользователей, кроме главного суперадмина
+                    if not request.user.is_superuser:
+                        user.delete()
+                        messages.error(request, 'Необходимо выбрать город для пользователя')
+                        return redirect('user_management')
                 
                 # Если создается администратор, устанавливаем is_superuser
                 if role == 'city_admin':
