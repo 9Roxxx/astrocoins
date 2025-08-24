@@ -1,0 +1,886 @@
+{
+  "students": [
+    {
+      "id": "3246",
+      "first_name": "Святослав",
+      "last_name": "Акентьев",
+      "login": "svyatoslav.akentev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон+Майнкрафт",
+      "full_name": "Акентьев Святослав Сергеевич"
+    },
+    {
+      "id": "3248",
+      "first_name": "Тимофей",
+      "last_name": "Белячков",
+      "login": "timofey.belyachkov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон+Майнкрафт",
+      "full_name": "Белячков Тимофей Петрович"
+    },
+    {
+      "id": "3259",
+      "first_name": "Илья",
+      "last_name": "Ефремов",
+      "login": "ilya.efremov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Ефремов Илья Сергеевич"
+    },
+    {
+      "id": "3283",
+      "first_name": "Роман",
+      "last_name": "Бровкин",
+      "login": "roman.brovkin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Бровкин Роман Сергеевич"
+    },
+    {
+      "id": "3287",
+      "first_name": "Роман",
+      "last_name": "Журченко",
+      "login": "roman.zhurchenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Журченко Роман Кириллович"
+    },
+    {
+      "id": "3289",
+      "first_name": "Тимофей",
+      "last_name": "Карапыш",
+      "login": "timofey.karapysh",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Карапыш Тимофей Станиславович"
+    },
+    {
+      "id": "3295",
+      "first_name": "Игорь",
+      "last_name": "Романюк",
+      "login": "igor.romanyuk",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Романюк Игорь Дмитриевич"
+    },
+    {
+      "id": "3297",
+      "first_name": "Елизавета",
+      "last_name": "Руднева",
+      "login": "elizaveta.rudneva",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Руднева Елизавета Алексеевна"
+    },
+    {
+      "id": "3301",
+      "first_name": "Людмила",
+      "last_name": "Васильева",
+      "login": "lyudmila.vasileva",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Создание сайтов Восход",
+      "full_name": "Васильева Людмила Иннокентьевна"
+    },
+    {
+      "id": "3305",
+      "first_name": "Павел",
+      "last_name": "Иванов",
+      "login": "pavel.ivanov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон+Майнкрафт",
+      "full_name": "Иванов Павел Евгеньевич"
+    },
+    {
+      "id": "3311",
+      "first_name": "Сергей",
+      "last_name": "Попов",
+      "login": "sergey.popov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Создание сайтов Восход",
+      "full_name": "Попов Сергей Михайлович"
+    },
+    {
+      "id": "3329",
+      "first_name": "Василий",
+      "last_name": "Ваганов",
+      "login": "vasiliy.vaganov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Ваганов Василий"
+    },
+    {
+      "id": "3333",
+      "first_name": "Егор",
+      "last_name": "Коннов",
+      "login": "egor.konnov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Коннов Егор Сергеевич"
+    },
+    {
+      "id": "3335",
+      "first_name": "Давид",
+      "last_name": "Стеблин",
+      "login": "david.steblin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Стеблин Давид Денисович"
+    },
+    {
+      "id": "3345",
+      "first_name": "Макар",
+      "last_name": "Щепин",
+      "login": "makar.schepin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Создание сайтов Восход",
+      "full_name": "Щепин Макар Александрович"
+    },
+    {
+      "id": "3359",
+      "first_name": "Павел",
+      "last_name": "Оскаленко",
+      "login": "pavel.oskalenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Оскаленко Павел Нет"
+    },
+    {
+      "id": "3641",
+      "first_name": "Матвей",
+      "last_name": "Смирнов",
+      "login": "matvey.smirnov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Смирнов Матвей Михайлович"
+    },
+    {
+      "id": "3791",
+      "first_name": "Илья",
+      "last_name": "Пустовойтов",
+      "login": "ilya.pustovoytov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Пустовойтов Илья Владимирович"
+    },
+    {
+      "id": "4175",
+      "first_name": "Илья",
+      "last_name": "Паренский",
+      "login": "ilya.parenskiy",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Видеоблоггинг, Питон+Майнкрафт",
+      "full_name": "Паренский Илья"
+    },
+    {
+      "id": "4317",
+      "first_name": "Михаил",
+      "last_name": "Коржиков",
+      "login": "mihail.korzhikov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Коржиков Михаил"
+    },
+    {
+      "id": "4319",
+      "first_name": "Давид",
+      "last_name": "Дмитренко",
+      "login": "david.dmitrenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Дмитренко Давид Дмитриевич"
+    },
+    {
+      "id": "4320",
+      "first_name": "Демид",
+      "last_name": "Дмитренко",
+      "login": "demid.dmitrenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Дмитренко Демид Дмитриевич"
+    },
+    {
+      "id": "4322",
+      "first_name": "Елизавета",
+      "last_name": "Григорян",
+      "login": "elizaveta.grigoryan",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Григорян Елизавета Альбертовна"
+    },
+    {
+      "id": "4324",
+      "first_name": "Леон",
+      "last_name": "Абалешев",
+      "login": "leon.abaleshev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Абалешев Леон Александрович"
+    },
+    {
+      "id": "4326",
+      "first_name": "Артемий",
+      "last_name": "Зеленин",
+      "login": "artemiy.zelenin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Зеленин Артемий Евгеньевич"
+    },
+    {
+      "id": "4356",
+      "first_name": "Дмитрий",
+      "last_name": "Овчинников",
+      "login": "dmitriy.ovchinnikov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон+Майнкрафт",
+      "full_name": "Овчинников Дмитрий Алексеевич"
+    },
+    {
+      "id": "4358",
+      "first_name": "Филипп",
+      "last_name": "Коптяев",
+      "login": "filipp.koptyaev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон+Майнкрафт",
+      "full_name": "Коптяев Филипп Сергеевич"
+    },
+    {
+      "id": "4360",
+      "first_name": "Глеб",
+      "last_name": "Дорожкин",
+      "login": "gleb.dorozhkin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Дорожкин Глеб Владимирович"
+    },
+    {
+      "id": "4370",
+      "first_name": "Агата",
+      "last_name": "Бакай",
+      "login": "agata.bakay",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Бакай Агата Евгеньевна"
+    },
+    {
+      "id": "4493",
+      "first_name": "Дмитрий",
+      "last_name": "Глацунов",
+      "login": "dmitriy.glatsunov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Создание сайтов Восход",
+      "full_name": "Глацунов Дмитрий Викторович"
+    },
+    {
+      "id": "4495",
+      "first_name": "Андрей",
+      "last_name": "Чупырь",
+      "login": "andrey.chupyr",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Создание сайтов Восход",
+      "full_name": "Чупырь Андрей Александрович"
+    },
+    {
+      "id": "4528",
+      "first_name": "Дмитрий",
+      "last_name": "Гладышев",
+      "login": "dmitriy.gladyshev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Гладышев Дмитрий Кириллович"
+    },
+    {
+      "id": "4614",
+      "first_name": "Всеволод",
+      "last_name": "Ольшевский",
+      "login": "vsevolod.olshevskiy",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн онлайн ср 19:00",
+      "full_name": "Ольшевский Всеволод"
+    },
+    {
+      "id": "4686",
+      "first_name": "Тимур",
+      "last_name": "Голиков",
+      "login": "timur.golikov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Голиков Тимур"
+    },
+    {
+      "id": "4687",
+      "first_name": "Александра",
+      "last_name": "Голикова",
+      "login": "aleksandra.golikova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Голикова Александра"
+    },
+    {
+      "id": "4689",
+      "first_name": "Злата",
+      "last_name": "Олисова",
+      "login": "zlata.olisova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Олисова Злата"
+    },
+    {
+      "id": "4752",
+      "first_name": "Савелий",
+      "last_name": "Дыкуль",
+      "login": "saveliy.dykul",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Дыкуль Савелий Алексеевич"
+    },
+    {
+      "id": "4754",
+      "first_name": "Дарья",
+      "last_name": "Исаева",
+      "login": "darya.isaeva",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт вс 11:15",
+      "full_name": "Исаева Дарья Олеговна"
+    },
+    {
+      "id": "4756",
+      "first_name": "Марьяна",
+      "last_name": "Панова",
+      "login": "maryana.panova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт вс 11:15",
+      "full_name": "Панова Марьяна Руслановна"
+    },
+    {
+      "id": "4758",
+      "first_name": "Максим",
+      "last_name": "Мергенев",
+      "login": "maksim.mergenev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт вс 11:15",
+      "full_name": "Мергенев Максим Сергеевич"
+    },
+    {
+      "id": "4760",
+      "first_name": "Макар",
+      "last_name": "Гарань",
+      "login": "makar.garan",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Гарань Макар"
+    },
+    {
+      "id": "4797",
+      "first_name": "Савелий",
+      "last_name": "Антропов",
+      "login": "saveliy.antropov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн онлайн ср 19:00",
+      "full_name": "Антропов Савелий"
+    },
+    {
+      "id": "4799",
+      "first_name": "Павел",
+      "last_name": "Гудков",
+      "login": "pavel.gudkov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн онлайн ср 19:00",
+      "full_name": "Гудков Павел"
+    },
+    {
+      "id": "4800",
+      "first_name": "Марк",
+      "last_name": "Щеголев",
+      "login": "mark.schegolev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн онлайн ср 19:00",
+      "full_name": "Щеголев Марк Максимович"
+    },
+    {
+      "id": "5017",
+      "first_name": "Тимур",
+      "last_name": "Лубушев",
+      "login": "timur.lubushev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "PS1 online сб 18:30",
+      "full_name": "Лубушев Тимур"
+    },
+    {
+      "id": "5019",
+      "first_name": "Ярослав",
+      "last_name": "Зеленцов",
+      "login": "yaroslav.zelentsov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "PS1 online сб 18:30",
+      "full_name": "Зеленцов Ярослав"
+    },
+    {
+      "id": "5021",
+      "first_name": "Глеб",
+      "last_name": "Романенко",
+      "login": "gleb.romanenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Романенко Глеб Евгеньевич"
+    },
+    {
+      "id": "5023",
+      "first_name": "Арина",
+      "last_name": "Пашковская",
+      "login": "arina.pashkovskaya",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт вс 11:15",
+      "full_name": "Пашковская Арина Павловна"
+    },
+    {
+      "id": "5025",
+      "first_name": "Артём",
+      "last_name": "Самойленко",
+      "login": "artem.samoylenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт вс 11:15",
+      "full_name": "Самойленко Артём Сергеевич"
+    },
+    {
+      "id": "5027",
+      "first_name": "Роман",
+      "last_name": "Жданов",
+      "login": "roman.zhdanov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон+Майнкрафт",
+      "full_name": "Жданов Роман"
+    },
+    {
+      "id": "5029",
+      "first_name": "Максим",
+      "last_name": "Лугин",
+      "login": "maksim.lugin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Питон старт 2 год",
+      "full_name": "Лугин Максим Геннадьевич"
+    },
+    {
+      "id": "5037",
+      "first_name": "Константин",
+      "last_name": "Павлущенко",
+      "login": "konstantin.pavluschenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вт 17:00 ВПМайн восход",
+      "full_name": "Павлущенко Константин Сергеевич"
+    },
+    {
+      "id": "5068",
+      "first_name": "Никита",
+      "last_name": "Вареник",
+      "login": "nikita.varenik",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Вареник Никита Алексеевич"
+    },
+    {
+      "id": "5070",
+      "first_name": "Тимофей",
+      "last_name": "Дегтярев",
+      "login": "timofey.degtyarev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Дегтярев Тимофей Максимович"
+    },
+    {
+      "id": "5072",
+      "first_name": "Василиса",
+      "last_name": "Евдокимова",
+      "login": "vasilisa.evdokimova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Евдокимова Василиса Васильевна"
+    },
+    {
+      "id": "5074",
+      "first_name": "Юлия",
+      "last_name": "Зенина",
+      "login": "yuliya.zenina",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Зенина Юлия Олеговна"
+    },
+    {
+      "id": "5076",
+      "first_name": "Артём",
+      "last_name": "Ломанов",
+      "login": "artem.lomanov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Ломанов Артём Николаевич"
+    },
+    {
+      "id": "5342",
+      "first_name": "Леон",
+      "last_name": "Абалешев",
+      "login": "leon.abaleshev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Абалешев Леон Александрович"
+    },
+    {
+      "id": "5344",
+      "first_name": "Лев",
+      "last_name": "Бунтуш",
+      "login": "lev.buntush",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Бунтуш Лев Вячеславович"
+    },
+    {
+      "id": "5346",
+      "first_name": "Евгений",
+      "last_name": "Жариков",
+      "login": "evgeniy.zharikov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Жариков Евгений Андреевич"
+    },
+    {
+      "id": "5348",
+      "first_name": "Семен",
+      "last_name": "Кайгородов",
+      "login": "semen.kaygorodov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Кайгородов Семен Игоревич"
+    },
+    {
+      "id": "5350",
+      "first_name": "Юлиана",
+      "last_name": "Лойко",
+      "login": "yuliana.loyko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Лойко Юлиана Васильевна"
+    },
+    {
+      "id": "5352",
+      "first_name": "Матвей",
+      "last_name": "Смирнов",
+      "login": "matvey.smirnov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Смирнов Матвей Михайлович"
+    },
+    {
+      "id": "5354",
+      "first_name": "Макар",
+      "last_name": "Мельников",
+      "login": "makar.melnikov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Мельников Макар Олегович"
+    },
+    {
+      "id": "5356",
+      "first_name": "Юрий",
+      "last_name": "Убоженко",
+      "login": "yuriy.ubozhenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Убоженко Юрий Юрьевич"
+    },
+    {
+      "id": "5358",
+      "first_name": "Виктория",
+      "last_name": "Хакимова",
+      "login": "viktoriya.hakimova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ восход сб 14:00",
+      "full_name": "Хакимова Виктория Руслановна"
+    },
+    {
+      "id": "5360",
+      "first_name": "Игнат",
+      "last_name": "Белов",
+      "login": "ignat.belov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ 18 школа вт 14:15",
+      "full_name": "Белов Игнат"
+    },
+    {
+      "id": "5362",
+      "first_name": "Константин",
+      "last_name": "Гришин",
+      "login": "konstantin.grishin",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ 18 школа вт 14:15",
+      "full_name": "Гришин Константин Максимович"
+    },
+    {
+      "id": "5364",
+      "first_name": "Руслан",
+      "last_name": "Токарев",
+      "login": "ruslan.tokarev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ 18 школа вт 14:15",
+      "full_name": "Токарев Руслан Александрович"
+    },
+    {
+      "id": "5366",
+      "first_name": "Степан",
+      "last_name": "Худяков",
+      "login": "stepan.hudyakov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ 18 школа вт 14:15",
+      "full_name": "Худяков Степан Романович"
+    },
+    {
+      "id": "5368",
+      "first_name": "Елизавета",
+      "last_name": "Шульгина",
+      "login": "elizaveta.shulgina",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "КГ 18 школа вт 14:15",
+      "full_name": "Шульгина Елизавета Анатольевна"
+    },
+    {
+      "id": "5608",
+      "first_name": "Петр",
+      "last_name": "Шишов",
+      "login": "petr.shishov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Python Start 2 Шишов_Левченко",
+      "full_name": "Шишов Петр Викторович"
+    },
+    {
+      "id": "5610",
+      "first_name": "Максим",
+      "last_name": "Левченко",
+      "login": "maksim.levchenko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Python Start 2 Шишов_Левченко",
+      "full_name": "Левченко Максим Дмитриевич"
+    },
+    {
+      "id": "5613",
+      "first_name": "Тимофей",
+      "last_name": "Лотарев",
+      "login": "timofey.lotarev",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ОЛиП 61 школа ср 11:55",
+      "full_name": "Лотарев Тимофей"
+    },
+    {
+      "id": "5616",
+      "first_name": "Макар",
+      "last_name": "Редько",
+      "login": "makar.redko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ОЛиП 61 школа ср 11:55",
+      "full_name": "Редько Макар Андреевич"
+    },
+    {
+      "id": "5617",
+      "first_name": "Маргарита",
+      "last_name": "Редько",
+      "login": "margarita.redko",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ОЛиП 61 школа ср 11:55",
+      "full_name": "Редько Маргарита Андреевна"
+    },
+    {
+      "id": "5650",
+      "first_name": "Кирилл",
+      "last_name": "Богомаз",
+      "login": "kirill.bogomaz",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Вс 9:30 ВПМайн Восход",
+      "full_name": "Богомаз Кирилл Алексеевич"
+    },
+    {
+      "id": "5652",
+      "first_name": "Арина",
+      "last_name": "Тулупова",
+      "login": "arina.tulupova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ОЛиП 61 школа ср 11:55",
+      "full_name": "Тулупова Арина Павловна"
+    },
+    {
+      "id": "5678",
+      "first_name": "Игорь",
+      "last_name": "Дардамынов",
+      "login": "igor.dardamynov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Дардамынов Игорь Денисович"
+    },
+    {
+      "id": "5680",
+      "first_name": "Анастасия",
+      "last_name": "Гусева",
+      "login": "anastasiya.guseva",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Гусева Анастасия Валерьевна"
+    },
+    {
+      "id": "5707",
+      "first_name": "Милана",
+      "last_name": "Штольц",
+      "login": "milana.shtolts",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ИИ Восход пт 16:00",
+      "full_name": "Штольц Милана Алексеевна"
+    },
+    {
+      "id": "5709",
+      "first_name": "Демид",
+      "last_name": "Обухов",
+      "login": "demid.obuhov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ИИ Восход пт 16:00",
+      "full_name": "Обухов Демид Алексеевич"
+    },
+    {
+      "id": "5711",
+      "first_name": "Ксения",
+      "last_name": "Ледянова",
+      "login": "kseniya.ledyanova",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ИИ Восход пт 16:00",
+      "full_name": "Ледянова Ксения Геннадьевна"
+    },
+    {
+      "id": "5715",
+      "first_name": "Михаил",
+      "last_name": "Долгих",
+      "login": "mihail.dolgih",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ИИ Восход пт 16:00",
+      "full_name": "Долгих Михаил Вячеславович"
+    },
+    {
+      "id": "5908",
+      "first_name": "Маргарита",
+      "last_name": "Зорина",
+      "login": "margarita.zorina",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "ИИ Восход пт 16:00",
+      "full_name": "Зорина Маргарита"
+    },
+    {
+      "id": "5913",
+      "first_name": "Тимофей",
+      "last_name": "Скобликов",
+      "login": "timofey.skoblikov",
+      "password": "123456",
+      "balance": 20,
+      "group_name": "Геймдизайн Восход сб 16:00",
+      "full_name": "Скобликов Тимофей"
+    }
+  ],
+  "groups": [
+    "Создание сайтов Восход",
+    "КГ восход сб 14:00",
+    "Вс 9:30 ВПМайн Восход",
+    "Python Start 2 Шишов_Левченко",
+    "Видеоблоггинг, Питон+Майнкрафт",
+    "КГ 18 школа вт 14:15",
+    "ИИ Восход пт 16:00",
+    "Питон старт 2 год",
+    "Питон+Майнкрафт",
+    "PS1 online сб 18:30",
+    "Питон старт вс 11:15",
+    "Геймдизайн Восход сб 16:00",
+    "Геймдизайн онлайн ср 19:00",
+    "ОЛиП 61 школа ср 11:55",
+    "Вт 17:00 ВПМайн восход"
+  ],
+  "summary": {
+    "total_students": 86,
+    "total_groups": 15,
+    "export_date": "2025-08-23T19:39:51.947598"
+  }
+}

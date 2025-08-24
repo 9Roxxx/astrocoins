@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="Content-Language" content="en"/>
+    <meta name="msapplication-TileColor" content="#2d89ef">
+    <meta name="theme-color" content="#4188c9">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+
+    <!-- Favicon -->
+            <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+        <link rel="mask-icon" href="/assets/favicon/safari-pinned-tab.svg" color="#5bbad5">
+        <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
+        <meta name="apple-mobile-web-app-title" content="depobr76">
+    <meta name="application-name" content="depobr76">
+    <meta name="msapplication-TileColor" content="#00aba9">
+    <meta name="msapplication-config" content="/assets/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="title" content=""/>
+    <meta name="description" content=""/>
+    <meta name="keywords" content=""/>
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="z0UJ8qks6ensAb00fURA2k16VLH6mg2AxQwZpavo">
+
+    <title>Вход</title>
+
+
+
+<!-- Styles -->
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,900&amp;subset=cyrillic" rel="stylesheet">
+    <style>
+        .page-main.pattern {
+            /*background: url("/assets/img/bg-pattern.png");*/
+            background: url("/storage/");
+        }
+    </style>
+
+    <!-- JavaScripts -->
+    <script src="https://algoritmika25.ru/assets/js/require.min.js"></script>
+    <script>
+        requirejs.config({
+            baseUrl: '.',
+	    waitSeconds: 200
+        });
+    </script>
+
+    <!-- Dashboard Core -->
+    <link href="https://algoritmika25.ru/assets/css/dashboard.css" rel="stylesheet"/>
+    <script src="https://algoritmika25.ru/assets/js/dashboard.js"></script>
+
+    <!-- c3.js Charts Plugin -->
+    <link href="https://algoritmika25.ru/assets/plugins/charts-c3/plugin.css" rel="stylesheet"/>
+    <script src="https://algoritmika25.ru/assets/plugins/charts-c3/plugin.js"></script>
+
+    <!-- Input Mask Plugin -->
+    <script src="https://algoritmika25.ru/assets/plugins/input-mask/plugin.js"></script>
+
+    <!-- Slim Plugin -->
+    <script src="https://algoritmika25.ru/assets/plugins/slim-cropper/plugin.js"></script>
+    <link href="https://algoritmika25.ru/assets/plugins/slim-cropper/plugin.css" rel="stylesheet"/>
+
+    <!-- Slim Plugin -->
+    <script src="https://algoritmika25.ru/assets/plugins/timetable/plugin.js"></script>
+    <link href="https://algoritmika25.ru/assets/plugins/timetable/plugin.css" rel="stylesheet"/>
+    <link href="https://algoritmika25.ru/assets/plugins/timetable/magnific-popup.css" rel="stylesheet"/>
+
+    <script src="https://algoritmika25.ru/assets/js/lang.js" type="text/javascript" ></script>
+    <link href="https://algoritmika25.ru/assets/css/lang.css" rel="stylesheet"/>
+
+
+
+</head>
+<body>
+
+<div class="page">
+    <div class="page-main  pattern ">
+        <div class="header">
+            <div class="container">
+                <div class="d-flex">
+                    <div class="header-brand-wrapper d-flex flex-column">
+                        <a class="header-brand" href="/">
+                            <img src=" /storage/app_logos/yuCYQcti00wPDhPOaPPlFsZrr5rdgAYjbxA87KAO.jpeg "
+                                 style="width: 200px;">
+                            <span class="header-city-title"></span>
+                        </a>
+                                            </div>
+                    <div class="d-flex order-lg-2 ml-auto align-items-center">
+                        <!--<div class="nav-item d-md-flex">-->
+                        <!--    <a class="header-tel" href="tel:84993842728"><i class="fal fa-phone mr-2 fa-1x"></i>8 499 384 27 28</a>-->
+                        <!--</div>-->
+                                                    <div class="nav-item d-md-flex">
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <a href="https://algoritmika25.ru/login" class="btn btn-sm btn-outline-primary">Вход</a>
+                                    <a href="https://algoritmika25.ru/register"
+                                       class="btn btn-sm btn-outline-primary">Регистрация</a>
+                                </div>
+                            </div>
+                                                                                            </div>
+
+                </div>
+            </div>
+        </div>
+                <div class="my-3 my-md-5">
+                                    <div class="container">
+                            <div class="container">
+        <div class="row">
+            <div class="col col-login mx-auto">
+                <form class="card" method="POST" action="https://algoritmika25.ru/login">
+                    <input type="hidden" name="_token" value="z0UJ8qks6ensAb00fURA2k16VLH6mg2AxQwZpavo">
+                    <div class="card-body p-6">
+                        <div class="card-title">Вход</div>
+                        <div class="form-group">
+                            <label class="form-label">Email родителя или Логин ученика</label>
+                            <div class="input-icon">
+                            <span class="input-icon-addon">
+                             <i class="fal fa-at"></i>
+                            </span>
+                                <input id="email" type="text" class="form-control  " name="login"
+                                       value="" aria-describedby="emailHelp"
+                                       placeholder="Введите Email или Логин ученика" required autofocus>
+                            </div>
+                                                    </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                Пароль
+                            </label>
+                            <div class="input-icon">
+                            <span class="input-icon-addon">
+                             <i class="fal fa-lock-alt"></i>
+                            </span>
+                                <input id="password" type="password" class="form-control  " name="password"
+                                       placeholder="Введите пароль" required>
+                            </div>
+                                                    </div>
+                        <div class="form-group">
+                            <label class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       name="remember" >
+                                <span class="custom-control-label">Запомнить меня</span>
+                                <a href="https://algoritmika25.ru/password/reset" class="float-right small">Забыли пароль?</a>
+                            </label>
+                        </div>
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary btn-block">Войти</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="text-center text-muted">
+                    Нет учетной записи? <br> <a href="https://algoritmika25.ru/register">Зарегистрироваться как родитель</a>
+                </div>
+            </div>
+        </div>
+    </div>
+                    </div>
+                
+                        </div>
+    </div>
+    <!-- Модальное окно с формой и прелоадером -->
+<div class="modal fade" id="contactModal" tabindex="-1" role="dialog" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactModalLabel">Связаться с нами</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="contactForm" novalidate>
+                    <input type="hidden" name="_token" value="z0UJ8qks6ensAb00fURA2k16VLH6mg2AxQwZpavo">                    <div class="form-group">
+                        <label for="name">Имя</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Введите ваше имя" required>
+                        <div class="invalid-feedback">Пожалуйста, введите имя.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Введите ваш email" required>
+                        <div class="invalid-feedback">Пожалуйста, введите корректный email.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Сообщение</label>
+                        <textarea class="form-control" id="message" rows="3" name="message" placeholder="Введите ваше сообщение" required></textarea>
+                        <div class="invalid-feedback">Пожалуйста, введите ваше сообщение.</div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <button type="submit" id="submitButton" class="btn btn-primary" style="margin-right: 10px;">Отправить</button>
+                        <div id="customPreloader" class="preloader-1" style="display: none;"> <div></div><div></div><div></div></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- успешная отправка -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Спасибо!</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Ваше сообщение успешно отправлено!
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ошибка отправки -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Ошибка!</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Произошла ошибка при отправке данных. Пожалуйста, попробуйте еще раз или обратитесь к администратору.
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let contactTrigger = document.getElementById('contactTrigger');
+        let contactForm = document.getElementById('contactForm');
+        let submitButton = document.getElementById('submitButton');
+        let preloader = document.getElementById('customPreloader');
+
+        if (contactTrigger) {
+			contactTrigger.addEventListener('click', function(event) {
+				event.preventDefault();
+				$('#contactModal').modal('show');
+			});
+		}
+
+        contactForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (contactForm.checkValidity()) {
+                var formData = new FormData(contactForm);
+                submitButton.disabled = true;
+                preloader.style.display = 'block';
+
+                axios.post('https://algoritmika25.ru/contact-us', formData)
+                    .then(function(response) {
+                        if (response.status === 200) {
+                            contactForm.reset();
+                            contactForm.classList.remove('was-validated');
+                            $('#successModal').modal('show');
+                            $('#contactModal').modal('hide');
+                        } else {
+                            $('#errorModal').modal('show');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.log('Ошибка при отправке данных:', error);
+                        $('#errorModal').modal('show');
+                    })
+                    .finally(function() {
+                        submitButton.disabled = false;
+                        preloader.style.display = 'none';
+                    });
+            }
+            contactForm.classList.add('was-validated');
+        });
+    });
+</script>
+    <div class="footer">
+        <div class="container">
+            <ul class="list-unstyled mb-0 ul-columns-2">
+                <li><a href="https://algoritmika25.ru/institutions">Контактные данные учреждений</a>
+                </li>
+
+                                                            <li><a href="/page/usloviya-vozvrata-i-obmena">Условия возврата</a></li>
+                                                                                <li><a href="/page/opisanie-processa-peredachi-dannyh">Описание процесса передачи данных</a></li>
+                                                                                <li><a href="/page/support">Поддержка</a></li>
+                                                                                <li><a href="/page/privacy-policy">Политика конфиденциальности</a></li>
+                                                                                <li><a href="/page/bonusnaya-programma-astrokoiny">Бонусная программа: Астрокоины</a></li>
+                                                                                                                                                                                                                        
+            </ul>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <div class="row align-items-center ">
+                <div class="col-lg-3 ">
+                    <a href="/changelog">Личный кабинет Алгоритмики © 2018 - 2025 Версия: 1.8.6</a>
+                </div>
+                <div class="col-lg-9">
+                            <img class="payments-icons float-right" src=" https://algoritmika25.ru/assets/img/payments-icons.png "
+                                 style="width: 200px;">
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://algoritmika25.ru/js/app.js?v=2"></script>
+        </div>
+
+
+</body>
+</html>
