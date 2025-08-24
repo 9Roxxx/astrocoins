@@ -73,19 +73,28 @@ class DatabaseImporter:
             else:
                 print(f"🏙️ Найден город: {self.default_city.name}")
             
-            # Находим/создаем школу
-            self.default_school, created = School.objects.get_or_create(
-                name="Алгоритмика Владивосток",
-                city=self.default_city,
-                defaults={
-                    'address': 'Владивосток',
-                    'description': 'Школа программирования Алгоритмика'
-                }
-            )
-            if created:
-                print(f"🏫 Создана школа: {self.default_school.name}")
-            else:
-                print(f"🏫 Найдена школа: {self.default_school.name}")
+            # Находим существующую школу "СК Восход" или создаем "Алгоритмика Владивосток"
+            try:
+                self.default_school = School.objects.get(name="СК Восход")
+                print(f"🏫 Найдена существующая школа: {self.default_school.name}")
+            except School.DoesNotExist:
+                # Создаем новую школу если СК Восход не найдена
+                self.default_school, created = School.objects.get_or_create(
+                    name="Алгоритмика Владивосток",
+                    city=self.default_city,
+                    defaults={
+                        'director': 'Директор',
+                        'representative': 'Представитель',
+                        'address': 'Владивосток',
+                        'phone': '+7-423-xxx-xxxx',
+                        'email': 'vlad@algoritmika.ru',
+                        'website': 'https://algoritmika.org'
+                    }
+                )
+                if created:
+                    print(f"🏫 Создана школа: {self.default_school.name}")
+                else:
+                    print(f"🏫 Найдена школа: {self.default_school.name}")
             
             # Находим преподавателя AlexanderX
             try:
@@ -119,19 +128,19 @@ class DatabaseImporter:
             
             for group_name in unique_groups:
                 try:
-                    # Создаем курс для каждой уникальной группы
+                    # Создаем курс для каждой уникальной группы в нашей школе
                     course, created = Course.objects.get_or_create(
                         name=group_name,
+                        school=self.default_school,  # Курс принадлежит школе
                         defaults={
                             'description': f'Курс {group_name}',
-                            'duration_weeks': 36,  # Учебный год
-                            'price': 5000,  # Примерная цена
-                            'max_students': 12
+                            'duration_hours': 144,  # Учебный год (36 недель * 4 часа)
+                            'is_active': True
                         }
                     )
                     
                     if created:
-                        print(f"📖 Создан курс: {course.name}")
+                        print(f"📖 Создан курс: {course.name} в школе {self.default_school.name}")
                         self.stats['courses_created'] += 1
                     else:
                         print(f"📖 Найден курс: {course.name}")
@@ -139,13 +148,13 @@ class DatabaseImporter:
                     # Создаем группу для курса
                     group, created = Group.objects.get_or_create(
                         name=group_name,
-                        course=course,
                         defaults={
+                            'course': course,
                             'school': self.default_school,
                             'teacher': self.teacher_user,
                             'curator': self.curator_user,
-                            'start_date': datetime.now().date(),
-                            'max_students': 12,
+                            'description': f'Группа {group_name}',
+                            'first_lesson_date': datetime.now().date(),
                             'is_active': True
                         }
                     )
@@ -155,12 +164,23 @@ class DatabaseImporter:
                         self.stats['groups_created'] += 1
                     else:
                         print(f"👥 Найдена группа: {group.name}")
-                        # Обновляем преподавателя и куратора если нужно
+                        # Обновляем связи если нужно
+                        updated = False
+                        if group.course != course:
+                            group.course = course
+                            updated = True
+                        if group.school != self.default_school:
+                            group.school = self.default_school
+                            updated = True
                         if group.teacher != self.teacher_user:
                             group.teacher = self.teacher_user
+                            updated = True
                         if group.curator != self.curator_user:
                             group.curator = self.curator_user
-                        group.save()
+                            updated = True
+                        if updated:
+                            group.save()
+                            print(f"  ✅ Обновлены связи для группы {group.name}")
                 
                 except Exception as e:
                     error_msg = f"Ошибка создания группы {group_name}: {e}"
@@ -174,6 +194,19 @@ class DatabaseImporter:
             self.stats['errors'].append(f"Courses/Groups error: {e}")
             return False
     
+    def parse_full_name(self, full_name):
+        """Парсит полное ФИО на составляющие"""
+        if not full_name:
+            return '', '', ''
+        
+        parts = full_name.strip().split()
+        if len(parts) >= 3:
+            return parts[1], parts[0], parts[2]  # имя, фамилия, отчество
+        elif len(parts) == 2:
+            return parts[1], parts[0], ''  # имя, фамилия, без отчества
+        else:
+            return parts[0] if parts else '', '', ''
+
     def create_students(self):
         """Создает студентов из JSON данных"""
         try:
@@ -183,16 +216,26 @@ class DatabaseImporter:
             
             for student_data in students_data:
                 try:
-                    first_name = student_data.get('first_name', '').strip()
-                    last_name = student_data.get('last_name', '').strip()
+                    # Парсим данные студента
                     login = student_data.get('login', '').strip()
                     password = student_data.get('password', '123456')
-                    balance = student_data.get('balance', 0)
+                    balance = int(student_data.get('balance', 0))
                     group_name = student_data.get('group_name', '').strip()
+                    full_name = student_data.get('full_name', '').strip()
+                    
+                    # Парсим ФИО из full_name или берем из отдельных полей
+                    if full_name:
+                        first_name, last_name, middle_name = self.parse_full_name(full_name)
+                    else:
+                        first_name = student_data.get('first_name', '').strip()
+                        last_name = student_data.get('last_name', '').strip()
+                        middle_name = ''
                     
                     if not first_name or not last_name or not login:
                         print(f"⚠️ Пропускаем студента с неполными данными: {student_data}")
                         continue
+                    
+                    print(f"  📝 Обрабатываем: {last_name} {first_name} {middle_name} (login: {login})")
                     
                     # Находим группу для студента
                     try:
@@ -207,46 +250,69 @@ class DatabaseImporter:
                         defaults={
                             'first_name': first_name,
                             'last_name': last_name,
+                            'middle_name': middle_name,
                             'email': f"{login}@algoritmika.local",
                             'password': make_password(password),
                             'is_active': True,
-                            'user_type': 'student'
+                            'role': 'student',  # Правильное поле role вместо user_type
+                            'group': group,  # Привязываем к группе
+                            'city': self.default_city  # Привязываем к городу
                         }
                     )
                     
                     if created:
-                        print(f"👤 Создан пользователь: {user.username}")
+                        print(f"👤 Создан пользователь: {user.username} ({last_name} {first_name})")
                         self.stats['students_created'] += 1
                     else:
                         # Обновляем данные если пользователь уже существует
-                        user.first_name = first_name
-                        user.last_name = last_name
-                        user.user_type = 'student'
-                        user.save()
-                        print(f"👤 Обновлен пользователь: {user.username}")
-                        self.stats['students_updated'] += 1
+                        updated = False
+                        if user.first_name != first_name:
+                            user.first_name = first_name
+                            updated = True
+                        if user.last_name != last_name:
+                            user.last_name = last_name
+                            updated = True
+                        if user.middle_name != middle_name:
+                            user.middle_name = middle_name
+                            updated = True
+                        if user.role != 'student':
+                            user.role = 'student'
+                            updated = True
+                        if user.group != group:
+                            user.group = group
+                            updated = True
+                        if user.city != self.default_city:
+                            user.city = self.default_city
+                            updated = True
+                        
+                        if updated:
+                            user.save()
+                            print(f"👤 Обновлен пользователь: {user.username}")
+                            self.stats['students_updated'] += 1
+                        else:
+                            print(f"👤 Пользователь актуален: {user.username}")
                     
                     # Создаем/обновляем профиль студента
-                    profile, created = Profile.objects.get_or_create(
+                    profile, profile_created = Profile.objects.get_or_create(
                         user=user,
                         defaults={
-                            'balance': balance,
-                            'city': self.default_city,
-                            'school': self.default_school
+                            'astrocoins': balance  # Правильное поле astrocoins вместо balance
                         }
                     )
                     
-                    if not created:
-                        # Обновляем баланс
-                        profile.balance = balance
-                        profile.city = self.default_city
-                        profile.school = self.default_school
-                        profile.save()
+                    if not profile_created:
+                        # Обновляем баланс если изменился
+                        if profile.astrocoins != balance:
+                            old_balance = profile.astrocoins
+                            profile.astrocoins = balance
+                            profile.save()
+                            print(f"  💰 Обновлен баланс: {old_balance} → {balance} AC")
+                        else:
+                            print(f"  💰 Баланс актуален: {balance} AC")
+                    else:
+                        print(f"  💰 Создан профиль с балансом: {balance} AC")
                     
-                    # Добавляем студента в группу
-                    if user not in group.students.all():
-                        group.students.add(user)
-                        print(f"  ✅ Добавлен в группу: {group.name}")
+                    print(f"  ✅ Студент в группе: {group.name}")
                 
                 except Exception as e:
                     error_msg = f"Ошибка создания студента {student_data}: {e}"
