@@ -1237,23 +1237,24 @@ def user_management(request):
                 if role == 'teacher' and user.city:
                     user.cities.add(user.city)
                 
+                # Получаем поля ФИО для всех ролей
+                first_name = request.POST.get('first_name', '').strip()
+                last_name = request.POST.get('last_name', '').strip()
+                middle_name = request.POST.get('middle_name', '').strip()
+                
+                # Проверяем обязательные поля ФИО
+                if not first_name or not last_name:
+                    user.delete()
+                    messages.error(request, 'Необходимо указать имя и фамилию')
+                    return redirect('user_management')
+                
+                # Устанавливаем ФИО для всех ролей
+                user.first_name = first_name
+                user.last_name = last_name
+                user.middle_name = middle_name
+                
                 # Если создается ученик, добавляем дополнительные поля
                 if role == 'student':
-                    # Получаем поля ФИО
-                    student_first_name = request.POST.get('student_first_name', '').strip()
-                    student_last_name = request.POST.get('student_last_name', '').strip()
-                    student_middle_name = request.POST.get('student_middle_name', '').strip()
-                    
-                    # Проверяем обязательные поля ФИО
-                    if not student_first_name or not student_last_name:
-                        user.delete()
-                        messages.error(request, 'Для ученика необходимо указать имя и фамилию')
-                        return redirect('user_management')
-                    
-                    # Устанавливаем ФИО
-                    user.first_name = student_first_name
-                    user.last_name = student_last_name
-                    user.middle_name = student_middle_name
                     
                     birth_day = request.POST.get('birth_day')
                     birth_month = request.POST.get('birth_month')

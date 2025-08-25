@@ -338,40 +338,42 @@
                             </div>
                         </div>
                         
+                        <!-- Поля ФИО для всех ролей -->
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">Имя <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control" id="first_name" name="first_name" 
+                                       placeholder="Введите имя" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Фамилия <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control" id="last_name" name="last_name" 
+                                       placeholder="Введите фамилию" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="middle_name" class="form-label">Отчество</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control" id="middle_name" name="middle_name" 
+                                       placeholder="Введите отчество">
+                            </div>
+                        </div>
+                        
                         <div id="studentFields" style="display: none;">
-                            <!-- Поля ФИО для ученика -->
-                            <div class="mb-3">
-                                <label for="student_first_name" class="form-label">Имя ученика <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="student_first_name" name="student_first_name" 
-                                           placeholder="Введите имя ученика" required>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="student_last_name" class="form-label">Фамилия ученика <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="student_last_name" name="student_last_name" 
-                                           placeholder="Введите фамилию ученика" required>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="student_middle_name" class="form-label">Отчество ученика <small class="text-muted">(необязательно)</small></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="student_middle_name" name="student_middle_name" 
-                                           placeholder="Введите отчество ученика">
-                                </div>
-                            </div>
+                            <!-- Специальные поля только для учеников -->
                             
                             <div class="mb-3">
                                 <label class="form-label">Дата рождения</label>
